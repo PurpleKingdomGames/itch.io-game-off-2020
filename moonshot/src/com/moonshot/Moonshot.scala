@@ -1,32 +1,19 @@
 package com.moonshot
 
 import indigo._
+import indigo.scenes._
+
+import com.moonshot.model.Model
+import com.moonshot.core.StartUpData
+import com.moonshot.core.Assets
 
 import scala.scalajs.js.annotation.JSExportTopLevel
+import com.moonshot.scenes.Level
 
 @JSExportTopLevel("IndigoGame")
-object Moonshot extends IndigoDemo[Unit, StartUpData, Game, Unit] {
+object Moonshot extends IndigoGame[Unit, StartUpData, Model, Unit] {
 
-  val magnification              = 1
   val eventFilters: EventFilters = EventFilters.Default
-
-  val config: GameConfig =
-    GameConfig.default.withMagnification(magnification)
-
-  val animations: Set[Animation] =
-    Set()
-
-  val assetName = AssetName("squares")
-  val mainGraphic =
-    Graphic(Rectangle(0, 0, 192, 32), 1, Material.Textured(assetName))
-
-  val assets: Set[AssetType] =
-    Set(
-      AssetType.Image(AssetName("squares"), AssetPath("assets/squares.png"))
-    )
-
-  val fonts: Set[FontInfo] =
-    Set()
 
   def boot(flags: Map[String, String]): BootResult[Unit] =
     BootResult
@@ -34,10 +21,15 @@ object Moonshot extends IndigoDemo[Unit, StartUpData, Game, Unit] {
         GameConfig.default
           .withViewport(550, 400)
           .withClearColor(ClearColor.fromRGB(1, 1, 1))
-          .withMagnification(magnification)
+          .withMagnification(1)
       )
-      .withAssets(assets)
-      .withFonts(fonts)
+      .withAssets(Assets.assets)
+
+  def scenes(bootData: Unit): NonEmptyList[Scene[StartUpData, Model, Unit]] =
+    NonEmptyList(Level)
+
+  def initialScene(bootData: Unit): Option[SceneName] =
+    None // or Some(Level.name)
 
   def setup(
       bootData: Unit,
@@ -46,34 +38,10 @@ object Moonshot extends IndigoDemo[Unit, StartUpData, Game, Unit] {
   ): Startup[StartUpData] =
     Startup.Success(StartUpData())
 
-  def initialModel(startupData: StartUpData): Game =
-    Game.initial()
+  def initialModel(startupData: StartUpData): Model =
+    Model.initial
 
-  def initialViewModel(startupData: StartUpData, model: Game): Unit =
+  def initialViewModel(startupData: StartUpData, model: Model): Unit =
     ()
 
-  def updateModel(
-      context: FrameContext[StartUpData],
-      model: Game
-  ): GlobalEvent => Outcome[Game] = {
-    case _ =>
-      Outcome(model)
-  }
-
-  def present(
-      context: FrameContext[StartUpData],
-      model: Game,
-      viewModel: Unit
-  ): SceneUpdateFragment =
-    SceneUpdateFragment.empty
-
-  def updateViewModel(
-      context: FrameContext[StartUpData],
-      model: Game,
-      viewModel: Unit
-  ): GlobalEvent => Outcome[Unit] =
-    _ => Outcome(viewModel)
-
 }
-
-final case class StartUpData()

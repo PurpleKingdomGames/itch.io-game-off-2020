@@ -23,12 +23,28 @@ object moonshot extends ScalaJSModule with MillIndigo {
       indigoBuild()()
     }
   }
+  
+  def buildGameFull() = T.command {
+    T {
+      compile()
+      fullOpt()
+      indigoBuildFull()()
+    }
+  }
 
   def runGame() = T.command {
     T {
       compile()
       fastOpt()
       indigoRun()()
+    }
+  }
+
+  def runGameFull() = T.command {
+    T {
+      compile()
+      fullOpt()
+      indigoRunFull()()
     }
   }
 
