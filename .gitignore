@@ -1,0 +1,8 @@
+.metals/
+.vscode/
+.bloop/
+out/
+*.class
+*.log
+.dotty-ide-disabled
+.DS_Store
