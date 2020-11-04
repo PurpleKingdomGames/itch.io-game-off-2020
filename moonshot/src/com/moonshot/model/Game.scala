@@ -1,4 +1,4 @@
-package com.moonshot
+package com.moonshot.model
 
 import indigo.GlobalEvent
 import indigo.Outcome
@@ -7,12 +7,12 @@ final case class Game() {
 
   def update(): GlobalEvent => Outcome[Game] = {
     case _ =>
-        Outcome(this)
+      Outcome(this)
   }
 }
 
 object Game {
-  def initial(): Game =
+  val initial: Game =
     Game()
 }
 
