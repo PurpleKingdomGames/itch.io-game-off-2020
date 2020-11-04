@@ -13,8 +13,8 @@ object moonshot extends ScalaJSModule with MillIndigo {
   val gameAssetsDirectory: os.Path = os.pwd / "assets"
   val showCursor: Boolean = true
   val title: String = "Itch.io Game Off 2020"
-  val windowStartWidth: Int = 550
-  val windowStartHeight: Int = 400
+  val windowStartWidth: Int = 350
+  val windowStartHeight: Int = 700
 
   def buildGame() = T.command {
     T {

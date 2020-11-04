@@ -5,7 +5,7 @@ import indigo._
 import scala.scalajs.js.annotation.JSExportTopLevel
 
 @JSExportTopLevel("IndigoGame")
-object Moonshot extends IndigoDemo[Unit, StartUpData, Model, Unit] {
+object Moonshot extends IndigoDemo[Unit, StartUpData, Game, Unit] {
 
   val magnification              = 1
   val eventFilters: EventFilters = EventFilters.Default
@@ -46,30 +46,30 @@ object Moonshot extends IndigoDemo[Unit, StartUpData, Model, Unit] {
   ): Startup[StartUpData] =
     Startup.Success(StartUpData())
 
-  def initialModel(startupData: StartUpData): Model =
-    Model.initial()
+  def initialModel(startupData: StartUpData): Game =
+    Game.initial()
 
-  def initialViewModel(startupData: StartUpData, model: Model): Unit =
+  def initialViewModel(startupData: StartUpData, model: Game): Unit =
     ()
 
   def updateModel(
       context: FrameContext[StartUpData],
-      model: Model
-  ): GlobalEvent => Outcome[Model] = {
+      model: Game
+  ): GlobalEvent => Outcome[Game] = {
     case _ =>
       Outcome(model)
   }
 
   def present(
       context: FrameContext[StartUpData],
-      model: Model,
+      model: Game,
       viewModel: Unit
   ): SceneUpdateFragment =
     SceneUpdateFragment.empty
 
   def updateViewModel(
       context: FrameContext[StartUpData],
-      model: Model,
+      model: Game,
       viewModel: Unit
   ): GlobalEvent => Outcome[Unit] =
     _ => Outcome(viewModel)
