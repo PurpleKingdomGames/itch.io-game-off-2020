@@ -28,28 +28,17 @@ object Level extends Scene[StartUpData, Model, Unit] {
     Set()
 
   def updateModel(context: FrameContext[StartUpData], model: Game): GlobalEvent => Outcome[Game] =
-    e => model.update()(e)
+    e => model.update(context.gameTime)(e)
 
   def updateViewModel(context: FrameContext[StartUpData], model: Game, viewModel: Unit): GlobalEvent => Outcome[Unit] =
     _ => Outcome(viewModel)
 
   def present(context: FrameContext[StartUpData], model: Game, viewModel: Unit): SceneUpdateFragment = {
-    val redBox =
-      Signal
-        .product(
-          Signal.SmoothPulse.map(d => Vector2(1 + d, 1 + d)),
-          Signal.CosWave.map(Radians.apply)
-        )
-        .map {
-          case (scaleBy, rotateBy) =>
-            Assets.redBox
-              .moveTo(100, 100)
-              .scaleBy(scaleBy)
-              .rotate(rotateBy)
-        }
-        .at(context.gameTime.running)
+      val shipGraphic = Assets
+            .redBox
+            .moveTo(model.ship.coords)
 
-    SceneUpdateFragment(Assets.mainGraphic, redBox)
+    SceneUpdateFragment(shipGraphic)
   }
 
 }

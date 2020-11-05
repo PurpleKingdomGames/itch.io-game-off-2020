@@ -2,10 +2,28 @@ package com.moonshot.model
 
 import indigo.GlobalEvent
 import indigo.Outcome
+import indigo.shared.events.KeyboardEvent.KeyDown
+import indigo.shared.time.GameTime
 
-final case class Game() {
+final case class Game(ship: Ship) {
 
-  def update(): GlobalEvent => Outcome[Game] = {
+  def update(gameTime: GameTime): GlobalEvent => Outcome[Game] = {
+    case _ @ KeyDown (k) =>
+        k.key match {
+            case "ArrowRight" =>
+                Outcome(this.copy(ship = ship.moveRight(gameTime)))
+
+            case "ArrowLeft" =>
+                Outcome(this.copy(ship = ship.moveLeft(gameTime)))
+
+            case "ArrowUp" =>
+                Outcome(this.copy(ship = ship.moveUp(gameTime)))
+
+            case "ArrowDown" =>
+                Outcome(this.copy(ship = ship.moveDown(gameTime)))
+            case _ =>
+                Outcome(this)
+        }
     case _ =>
       Outcome(this)
   }
@@ -13,7 +31,7 @@ final case class Game() {
 
 object Game {
   val initial: Game =
-    Game()
+    Game(Ship.initial)
 }
 
 sealed trait GameState

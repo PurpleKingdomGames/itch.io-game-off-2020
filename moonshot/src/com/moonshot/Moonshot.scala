@@ -19,7 +19,7 @@ object Moonshot extends IndigoGame[Unit, StartUpData, Model, Unit] {
     BootResult
       .noData(
         GameConfig.default
-          .withViewport(550, 400)
+          .withViewport(350, 700)
           .withClearColor(ClearColor.fromRGB(1, 1, 1))
           .withMagnification(1)
       )
