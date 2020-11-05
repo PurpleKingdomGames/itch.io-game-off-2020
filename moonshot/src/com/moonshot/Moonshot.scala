@@ -22,6 +22,7 @@ object Moonshot extends IndigoGame[Unit, StartUpData, Model, Unit] {
           .withViewport(350, 700)
           .withClearColor(ClearColor.fromRGB(1, 1, 1))
           .withMagnification(1)
+          .withFrameRate(60)
       )
       .withAssets(Assets.assets)
 

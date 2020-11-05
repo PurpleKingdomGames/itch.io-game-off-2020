@@ -1,26 +1,27 @@
 package com.moonshot.model
 
-import indigo.Point
-import indigo.shared.time.GameTime
+import indigo._
 
-final case class Ship (coords: Point) {
-    val speed = 5
+final case class Ship(coords: Vector2) {
+  val speed = 600
 
-    def moveRight(gameTime: GameTime) =
-        this.copy(coords = coords.withX((coords.x + (speed * gameTime.delta.value)).toInt))
+  def moveRight(gameTime: GameTime) =
+    this.copy(coords = coords.withX((coords.x + (speed * gameTime.delta.value))))
 
-    def moveLeft(gameTime: GameTime) =
-        this.copy(coords = coords.withX((coords.x + -(speed * gameTime.delta.value)).toInt))
+  def moveLeft(gameTime: GameTime) =
+    this.copy(coords = coords.withX((coords.x + -(speed * gameTime.delta.value))))
 
-    def moveUp(gameTime: GameTime) =
-        this.copy(coords = coords.withY((coords.y + -(speed * gameTime.delta.value)).toInt))
+  def moveUp(gameTime: GameTime) =
+    this.copy(coords = coords.withY((coords.y + -(speed * gameTime.delta.value))))
 
-    def moveDown(gameTime: GameTime) =
-        this.copy(coords = coords.withY((coords.y + (speed * gameTime.delta.value)).toInt))
+  def moveDown(gameTime: GameTime) =
+    this.copy(coords = coords.withY((coords.y + (speed * gameTime.delta.value))))
+
+  def toScreenSpace: Point =
+    coords.toPoint
 }
-
 
 object Ship {
   val initial: Ship =
-    Ship(new Point(0, 0))
+    Ship(Vector2.zero)
 }

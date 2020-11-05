@@ -36,7 +36,7 @@ object Level extends Scene[StartUpData, Model, Unit] {
   def present(context: FrameContext[StartUpData], model: Game, viewModel: Unit): SceneUpdateFragment = {
       val shipGraphic = Assets
             .redBox
-            .moveTo(model.ship.coords)
+            .moveTo(model.ship.toScreenSpace)
 
     SceneUpdateFragment(shipGraphic)
   }
