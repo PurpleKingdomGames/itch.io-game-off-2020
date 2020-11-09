@@ -9,7 +9,7 @@ final case class Game(ship: Ship) {
 
   def update(gameTime: GameTime): GlobalEvent => Outcome[Game] = {
     case FrameTick =>
-      Outcome(this.copy(ship = ship.update(gameTime)))
+      Outcome(this.copy(ship = ship.update(gameTime, Nil)))
 
     case KeyDown(k) =>
       k match {
