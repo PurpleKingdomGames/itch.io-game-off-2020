@@ -6,10 +6,11 @@ import indigo.shared.events.KeyboardEvent.KeyUp
 import indigo.shared.time.GameTime
 
 final case class Game(ship: Ship) {
+  val asteroids = List(new Asteroid(Vector2(175, 64), 0, 10))
 
   def update(gameTime: GameTime): GlobalEvent => Outcome[Game] = {
     case FrameTick =>
-      Outcome(this.copy(ship = ship.update(gameTime, Nil)))
+      Outcome(this.copy(ship = ship.update(gameTime, asteroids.map(_.getBoundingBox()))))
 
     case KeyDown(k) =>
       k match {

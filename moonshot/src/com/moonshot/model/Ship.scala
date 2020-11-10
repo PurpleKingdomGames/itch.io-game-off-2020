@@ -73,15 +73,18 @@ final case class Ship(health: Int, coords: Vector2, currentSpeed:Vector2, target
   }
 
   def checkShipCollisionAgainstCircle(shipBox: BoundingBox, circleBox: BoundingBox) = {
-    val halfShip = shipBox.halfSize + shipBox.center
-    val centreVector = Vector2.fromPoints(circleBox.center.toPoint, shipBox.center.toPoint);
-    val clampedVertex = new Vertex(
-      Math.max(-halfShip.x, Math.min(halfShip.x, centreVector.x)),
-      Math.max(-halfShip.y, Math.min(halfShip.y, centreVector.y))
+    val center = circleBox.center
+    val halfShip = shipBox.halfSize
+    val shipCenter = shipBox.center
+
+    val diff = center - shipCenter
+    val clamped = Vertex(
+        Math.max(-halfShip.x, Math.min(halfShip.x, diff.x)),
+        Math.max(-halfShip.y, Math.min(halfShip.y, diff.y))
     )
 
-    val closest = shipBox.center + clampedVertex
-    Vertex.distanceBetween(closest, circleBox.center) < circleBox.halfSize.x
+    val closest = shipCenter + clamped
+    closest.distanceTo(center) < (circleBox.width * 0.5)
   }
 }
 

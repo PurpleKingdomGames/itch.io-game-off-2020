@@ -34,11 +34,15 @@ object Level extends Scene[StartUpData, Model, Unit] {
     _ => Outcome(viewModel)
 
   def present(context: FrameContext[StartUpData], model: Game, viewModel: Unit): SceneUpdateFragment = {
-      val shipGraphic = Assets
-            .redBox
-            .moveTo(model.ship.toScreenSpace)
+    val shipGraphic = Assets
+      .redBox
+      .moveTo(model.ship.toScreenSpace)
+
+    val asteroidGraphic = Assets
+      .blueBox
 
     SceneUpdateFragment(shipGraphic)
+      .addGameLayerNodes(model.asteroids.map(a => asteroidGraphic.moveTo(a.coords.x.toInt, a.coords.y.toInt)))
   }
 
 }
