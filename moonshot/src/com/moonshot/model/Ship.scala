@@ -9,7 +9,7 @@ final case class Ship(health: Int, coords: Vector2, currentSpeed:Vector2, target
   val acceleration: Double = 25;
   val boundingBox: BoundingBox = new BoundingBox(new Vertex(coords.x, coords.y), new Vertex(32, 32));
 
-  def update(gameTime: GameTime, asteroids: List[BoundingBox]) = {
+  def update(gameTime: GameTime,  asteroids: List[BoundingBox]) = {
     if (this.health < 1)
       this
     else
@@ -17,6 +17,9 @@ final case class Ship(health: Int, coords: Vector2, currentSpeed:Vector2, target
         .updateMove(gameTime)
         .updateAsteroidCollisions(asteroids)
   }
+
+  def moveBy(x: Double, y: Double) =
+    this.copy(coords = this.coords + Vector2(x, y))
 
   def moveRight() =
     this.copy(targetSpeed = targetSpeed.withX(maxSpeed))
@@ -90,5 +93,5 @@ final case class Ship(health: Int, coords: Vector2, currentSpeed:Vector2, target
 
 object Ship {
   val initial: Ship =
-    Ship(1, Vector2(175, 625), Vector2.zero, Vector2.zero)
+    Ship(1, Vector2(159, 625), Vector2.zero, Vector2.zero)
 }

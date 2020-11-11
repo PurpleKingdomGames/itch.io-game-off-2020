@@ -42,7 +42,11 @@ object Level extends Scene[StartUpData, Model, Unit] {
       .blueBox
 
     SceneUpdateFragment(shipGraphic)
-      .addGameLayerNodes(model.asteroids.map(a => asteroidGraphic.moveTo(a.coords.x.toInt, a.coords.y.toInt)))
+      .addGameLayerNodes(
+        model.asteroids.map(a => asteroidGraphic
+          .moveTo(a.coords.x.toInt, a.coords.y.toInt)
+        )
+      )
   }
 
 }

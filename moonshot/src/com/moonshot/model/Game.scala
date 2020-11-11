@@ -5,12 +5,27 @@ import indigo.shared.events.KeyboardEvent.KeyDown
 import indigo.shared.events.KeyboardEvent.KeyUp
 import indigo.shared.time.GameTime
 
-final case class Game(ship: Ship) {
-  val asteroids = List(new Asteroid(Vector2(175, 64), 0, 10))
+final case class Game(ship: Ship, asteroids: List[Asteroid], verticalOffset: Double ) {
+  val verticalSpeed : Double = 30;
 
   def update(gameTime: GameTime): GlobalEvent => Outcome[Game] = {
-    case FrameTick =>
-      Outcome(this.copy(ship = ship.update(gameTime, asteroids.map(_.getBoundingBox()))))
+    case FrameTick => {
+      val verticalDelta = (verticalSpeed * gameTime.delta.value)
+      Outcome(this
+        .copy(
+          ship = ship
+            .update(gameTime, asteroids.map(_.getBoundingBox()))
+            .moveBy(0, (
+              if (ship.health < 1)
+                verticalDelta * 1.5
+              else
+                0
+            )),
+          asteroids = asteroids.map(_.moveBy(0, verticalDelta)),
+          verticalOffset = verticalOffset + verticalDelta
+      ))
+    }
+
 
     case KeyDown(k) =>
       k match {
@@ -53,7 +68,7 @@ final case class Game(ship: Ship) {
 
 object Game {
   val initial: Game =
-    Game(Ship.initial)
+    Game(Ship.initial, List(new Asteroid(Vector2(159, 64), 0, 10)), 0)
 }
 
 sealed trait GameState
