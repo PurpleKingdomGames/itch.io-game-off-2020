@@ -21,6 +21,12 @@ final case class Ship(health: Int, coords: Vector2, currentSpeed:Vector2, target
   def moveBy(x: Double, y: Double) =
     this.copy(coords = this.coords + Vector2(x, y))
 
+  def clampTo(clampBox : BoundingBox) =
+    this.copy(coords = Vector2(
+      Math.max(clampBox.x, Math.min(clampBox.x + clampBox.width - boundingBox.width, coords.x)),
+      Math.max(clampBox.y, Math.min(clampBox.y + clampBox.height - boundingBox.height, coords.y))
+    ))
+
   def moveRight() =
     this.copy(targetSpeed = targetSpeed.withX(maxSpeed))
 

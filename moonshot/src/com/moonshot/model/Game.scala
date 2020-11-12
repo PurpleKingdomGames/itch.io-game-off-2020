@@ -4,9 +4,12 @@ import indigo._
 import indigo.shared.events.KeyboardEvent.KeyDown
 import indigo.shared.events.KeyboardEvent.KeyUp
 import indigo.shared.time.GameTime
+import indigoextras.geometry.BoundingBox
+import indigoextras.geometry.Vertex
 
 final case class Game(ship: Ship, asteroids: List[Asteroid], verticalOffset: Double ) {
   val verticalSpeed : Double = 30;
+  val boundingBox : BoundingBox = BoundingBox(Vertex(0, 0), Vertex(350, 700))
 
   def update(gameTime: GameTime): GlobalEvent => Outcome[Game] = {
     case FrameTick => {
@@ -20,8 +23,16 @@ final case class Game(ship: Ship, asteroids: List[Asteroid], verticalOffset: Dou
                 verticalDelta * 1.5
               else
                 0
-            )),
-          asteroids = asteroids.map(_.moveBy(0, verticalDelta)),
+            ))
+            .clampTo(boundingBox),
+          asteroids = asteroids
+            .map(_.moveBy(0, verticalDelta))
+            .filter(a =>
+              a.coords.x > boundingBox.x - a.boundingBox.width
+              && a.coords.x < boundingBox.x + boundingBox.width
+              && a.coords.y > boundingBox.y - a.boundingBox.height
+              && a.coords.y < boundingBox.y + boundingBox.height
+            ),
           verticalOffset = verticalOffset + verticalDelta
       ))
     }
