@@ -28,7 +28,7 @@ object Level extends Scene[StartUpData, Model, Unit] {
     Set()
 
   def updateModel(context: FrameContext[StartUpData], model: Game): GlobalEvent => Outcome[Game] =
-    e => model.update(context.gameTime)(e)
+    e => model.update(context.gameTime, context.dice)(e)
 
   def updateViewModel(context: FrameContext[StartUpData], model: Game, viewModel: Unit): GlobalEvent => Outcome[Unit] =
     _ => Outcome(viewModel)

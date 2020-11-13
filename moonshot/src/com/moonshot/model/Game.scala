@@ -7,11 +7,14 @@ import indigo.shared.time.GameTime
 import indigoextras.geometry.BoundingBox
 import indigoextras.geometry.Vertex
 
-final case class Game(ship: Ship, asteroids: List[Asteroid], verticalOffset: Double ) {
-  val verticalSpeed : Double = 30;
+final case class Game(ship: Ship, asteroids: List[Asteroid], verticalOffset: Double, nextAsteroidSpawn : Double) {
+  val verticalSpeed : Double = 40
   val boundingBox : BoundingBox = BoundingBox(Vertex(0, 0), Vertex(350, 700))
+  val maxAsteroids : Int = 20
+  val minAsteroidSpawnRate : Double = 1
+  val maxAsteroidSpawnRate : Double = 3
 
-  def update(gameTime: GameTime): GlobalEvent => Outcome[Game] = {
+  def update(gameTime: GameTime, dice: Dice): GlobalEvent => Outcome[Game] = {
     case FrameTick => {
       val verticalDelta = (verticalSpeed * gameTime.delta.value)
       Outcome(this
@@ -34,7 +37,8 @@ final case class Game(ship: Ship, asteroids: List[Asteroid], verticalOffset: Dou
               && a.coords.y < boundingBox.y + boundingBox.height
             ),
           verticalOffset = verticalOffset + verticalDelta
-      ))
+      )
+      .spawnAsteroid(gameTime, dice))
     }
 
 
@@ -75,11 +79,26 @@ final case class Game(ship: Ship, asteroids: List[Asteroid], verticalOffset: Dou
     case _ =>
       Outcome(this)
   }
+
+  def spawnAsteroid(gameTime : GameTime, dice : Dice) =
+    if (gameTime.running.value < nextAsteroidSpawn || asteroids.length >= maxAsteroids)
+      this
+    else
+      this.copy(
+        asteroids =
+            Asteroid
+              .initial
+              .moveTo(dice.rollDouble * boundingBox.width - 16, boundingBox.y - 20)
+              .withRotation(dice.rollDouble * 360)
+              .withRotationSpeed(dice.rollDouble)
+            :: asteroids
+        , nextAsteroidSpawn = gameTime.running.value + (dice.rollDouble * (maxAsteroidSpawnRate - minAsteroidSpawnRate) + minAsteroidSpawnRate)
+      )
 }
 
 object Game {
   val initial: Game =
-    Game(Ship.initial, List(new Asteroid(Vector2(159, 64), 0, 10)), 0)
+    Game(Ship.initial, Nil, 0, 0)
 }
 
 sealed trait GameState
