@@ -7,7 +7,7 @@ import indigo.shared.time.GameTime
 import indigoextras.geometry.BoundingBox
 import indigoextras.geometry.Vertex
 
-final case class Game(ship: Ship, asteroids: List[Asteroid], verticalOffset: Double, nextAsteroidSpawn : Double) {
+final case class Game(gameState: GameState, ship: Ship, asteroids: List[Asteroid], verticalOffset: Double, nextAsteroidSpawn : Double) {
   val verticalSpeed : Double = 40
   val boundingBox : BoundingBox = BoundingBox(Vertex(0, 0), Vertex(350, 700))
   val maxAsteroids : Int = 20
@@ -16,29 +16,10 @@ final case class Game(ship: Ship, asteroids: List[Asteroid], verticalOffset: Dou
 
   def update(gameTime: GameTime, dice: Dice): GlobalEvent => Outcome[Game] = {
     case FrameTick => {
-      val verticalDelta = (verticalSpeed * gameTime.delta.value)
-      Outcome(this
-        .copy(
-          ship = ship
-            .update(gameTime, asteroids.map(_.getBoundingBox()))
-            .moveBy(0, (
-              if (ship.health < 1)
-                verticalDelta * 1.5
-              else
-                0
-            ))
-            .clampTo(boundingBox),
-          asteroids = asteroids
-            .map(_.moveBy(0, verticalDelta))
-            .filter(a =>
-              a.coords.x > boundingBox.x - a.boundingBox.width
-              && a.coords.x < boundingBox.x + boundingBox.width
-              && a.coords.y > boundingBox.y - a.boundingBox.height
-              && a.coords.y < boundingBox.y + boundingBox.height
-            ),
-          verticalOffset = verticalOffset + verticalDelta
-      )
-      .spawnAsteroid(gameTime, dice))
+      if (gameState == GameState.GameRunning)
+         updateRunningGame(gameTime, dice)
+      else
+        Outcome(this)
     }
 
 
@@ -56,6 +37,15 @@ final case class Game(ship: Ship, asteroids: List[Asteroid], verticalOffset: Dou
         case Key.DOWN_ARROW =>
           Outcome(this.copy(ship = ship.moveDown()))
 
+          case Key.ESCAPE =>
+            Outcome(
+              if (gameState == GameState.GameRunning)
+                this.copy(gameState = GameState.GamePaused)
+              else if (gameState == GameState.GamePaused)
+                this.copy(gameState = GameState.GameRunning)
+              else
+                this
+            )
         case _ =>
           Outcome(this)
       }
@@ -94,11 +84,37 @@ final case class Game(ship: Ship, asteroids: List[Asteroid], verticalOffset: Dou
             :: asteroids
         , nextAsteroidSpawn = gameTime.running.value + (dice.rollDouble * (maxAsteroidSpawnRate - minAsteroidSpawnRate) + minAsteroidSpawnRate)
       )
+
+  def updateRunningGame(gameTime: GameTime, dice: Dice) = {
+    val verticalDelta = (verticalSpeed * gameTime.delta.value)
+    Outcome(this
+      .copy(
+        ship = ship
+          .update(gameTime, asteroids.map(_.getBoundingBox()))
+          .moveBy(0, (
+            if (ship.health < 1)
+              verticalDelta * 1.5
+            else
+              0
+          ))
+          .clampTo(boundingBox),
+        asteroids = asteroids
+          .map(_.moveBy(0, verticalDelta))
+          .filter(a =>
+            a.coords.x > boundingBox.x - a.boundingBox.width
+            && a.coords.x < boundingBox.x + boundingBox.width
+            && a.coords.y > boundingBox.y - a.boundingBox.height
+            && a.coords.y < boundingBox.y + boundingBox.height
+          ),
+        verticalOffset = verticalOffset + verticalDelta
+    )
+    .spawnAsteroid(gameTime, dice))
+  }
 }
 
 object Game {
   val initial: Game =
-    Game(Ship.initial, Nil, 0, 0)
+    Game(GameState.GameRunning, Ship.initial, Nil, 0, 0)
 }
 
 sealed trait GameState
