@@ -11,17 +11,19 @@ import com.moonshot.model.ShipControl.ThrustLeft
 import com.moonshot.model.ShipControl.ThrustRight
 
 final case class Ship(health: Int, force: Vector2, coords: Vector2, angle: Radians) {
-  val boundingBox: BoundingBox = new BoundingBox(new Vertex(coords.x, coords.y), new Vertex(32, 32));
+  val boundingBox: BoundingBox =
+    new BoundingBox(
+        new Vertex(coords.x - 16, coords.y - 24), new Vertex(32, 56));
 
   def update(gameTime: GameTime, asteroids: List[BoundingBox], shipControl: ShipControl, screenBounds: BoundingBox) =
     if (this.health < 1)
       this
         .updateMove(gameTime, ShipControl.TurnRight)
-        .clampTo(screenBounds)
+        .clampTo(screenBounds.copy(size = screenBounds.size.copy(y = screenBounds.size.y - 16)))
     else
       this
         .updateMove(gameTime, shipControl)
-        .clampTo(screenBounds)
+        .clampTo(screenBounds.copy(size = screenBounds.size.copy(y = screenBounds.size.y - 32)))
         .updateAsteroidCollisions(asteroids)
 
   def moveBy(x: Double, y: Double) =

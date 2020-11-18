@@ -1,14 +1,11 @@
 package com.moonshot.model
 
 import indigo._
-// import indigo.shared.events.KeyboardEvent.KeyDown
 import indigo.shared.events.KeyboardEvent.KeyUp
 import indigo.shared.time.GameTime
 import indigoextras.geometry.BoundingBox
 
-final case class Game(gameState: GameState, ship: Ship, timeRemainingInSeconds: Double, asteroids: List[Asteroid], verticalOffset: Double, nextAsteroidSpawn: Double) {
-  val verticalSpeed: Double = 40
-  // val boundingBox: BoundingBox     = BoundingBox(Vertex(0, 0), Vertex(350, 700))
+final case class Game(gameState: GameState, ship: Ship, timeRemainingInSeconds: Double, asteroids: List[Asteroid], verticalSpeed: Double, verticalOffset: Double, nextAsteroidSpawn: Double) {
   val maxAsteroids: Int            = 20
   val minAsteroidSpawnRate: Double = 1
   val maxAsteroidSpawnRate: Double = 3
@@ -44,9 +41,10 @@ final case class Game(gameState: GameState, ship: Ship, timeRemainingInSeconds: 
   def buyUpgrade(upgrade: Upgrade) =
     if (timeRemainingInSeconds > upgrade.cost)
       this.copy(
-        ship = ship.copy(health = ship.health + upgrade.healthBoost /*, speed = ship.speed + upgrade.speedBoost*/ ), // should be a function of Ship
+        ship = ship.copy(health = ship.health + upgrade.healthBoost),
         timeRemainingInSeconds =
-          timeRemainingInSeconds - upgrade.cost
+          timeRemainingInSeconds - upgrade.cost,
+        verticalSpeed = verticalSpeed + upgrade.speedBoost
       )
     else
       this
@@ -81,7 +79,7 @@ final case class Game(gameState: GameState, ship: Ship, timeRemainingInSeconds: 
                 && a.coords.y > screenBounds.y - a.boundingBox.height
                 && a.coords.y < screenBounds.y + screenBounds.height
             ),
-          // verticalOffset = verticalOffset + verticalDelta,
+          verticalOffset = verticalOffset + verticalDelta,
           timeRemainingInSeconds = Math.max(0, timeRemainingInSeconds - gameTime.delta.value)
         )
         .spawnAsteroid(gameTime, dice, screenBounds)
@@ -91,9 +89,10 @@ final case class Game(gameState: GameState, ship: Ship, timeRemainingInSeconds: 
 
 object Game {
   val maxTimeLimit: Double = 600 // 10 Minutes
+  val initVerticalSpeed: Double = 40
 
   def initial(screenBounds: BoundingBox): Game =
-    Game(GameState.GameRunning, Ship.initial(screenBounds), maxTimeLimit, Nil, 0, 0)
+    Game(GameState.GameRunning, Ship.initial(screenBounds), maxTimeLimit, Nil, initVerticalSpeed, 0, 0)
 }
 
 sealed trait GameState
