@@ -9,20 +9,20 @@ final case class Asteroid(coords: Vector2, startRotation: Double, rotationSpeed:
 
   def getBoundingBox() = boundingBox
 
-  def moveTo(x : Double, y : Double) =
+  def moveTo(x: Double, y: Double) =
     this.copy(coords = Vector2(x, y))
 
   def moveBy(x: Double, y: Double) =
     this.copy(coords = this.coords + Vector2(x, y))
 
-  def withRotation(rotation : Double) =
+  def withRotation(rotation: Double) =
     this.copy(startRotation = rotation)
 
-  def withRotationSpeed(speed : Double) =
+  def withRotationSpeed(speed: Double) =
     this.copy(rotationSpeed = speed)
 }
 
 object Asteroid {
-    val initial =
-        Asteroid(Vector2.zero, 0, 0)
+  val initial =
+    Asteroid(Vector2.zero, 0, 0)
 }
