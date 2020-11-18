@@ -1,3 +1,5 @@
 package com.moonshot.core
 
-final case class StartUpData()
+import indigoextras.geometry.BoundingBox
+
+final case class StartUpData(screenBounds: BoundingBox)
