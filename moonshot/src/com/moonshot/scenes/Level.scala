@@ -9,6 +9,7 @@ import com.moonshot.core.StartUpData
 import com.moonshot.model.Fumes
 import com.moonshot.viewmodel.ViewModel
 import com.moonshot.viewmodel.LevelViewModel
+import com.moonshot.model.{Ship, ShipControl}
 
 object Level extends Scene[StartUpData, Model, ViewModel] {
 
@@ -31,7 +32,7 @@ object Level extends Scene[StartUpData, Model, ViewModel] {
     Set(Fumes.subSystem)
 
   def updateModel(context: FrameContext[StartUpData], model: Game): GlobalEvent => Outcome[Game] =
-    e => model.update(context.gameTime, context.dice)(e)
+    e => model.update(context.gameTime, context.dice, context.inputState.mapInputs(Ship.inputMappings, ShipControl.Idle), context.startUpData.screenBounds)(e)
 
   def updateViewModel(context: FrameContext[StartUpData], model: Game, viewModel: LevelViewModel): GlobalEvent => Outcome[LevelViewModel] = {
     case FrameTick =>
@@ -42,7 +43,7 @@ object Level extends Scene[StartUpData, Model, ViewModel] {
               Fumes.spawn(
                 model.ship.toScreenSpace,
                 Seconds(context.dice.rollDouble * 0.5 + 0.5),
-                Radians(0.0 + ((context.dice.rollDouble * 0.2) - 0.1))
+                Radians(model.ship.angle.value + ((context.dice.rollDouble * 0.2) - 0.1))
               )
             )
           else Nil
@@ -59,6 +60,7 @@ object Level extends Scene[StartUpData, Model, ViewModel] {
   def present(context: FrameContext[StartUpData], model: Game, viewModel: LevelViewModel): SceneUpdateFragment = {
     val shipGraphic = Assets.Rocket.rocket
       .moveTo(model.ship.toScreenSpace)
+      .rotate(model.ship.angle)
 
     val asteroidGraphic = Assets.Placeholder.blueBox
 

@@ -1,10 +1,12 @@
 package com.moonshot.model
 
+import indigoextras.geometry.BoundingBox
+
 final case class Model(game: Game)
 
 object Model {
 
-  val initial: Model =
-    Model(Game.initial)
+  def initial(screenBounds: BoundingBox): Model =
+    Model(Game.initial(screenBounds))
 
 }

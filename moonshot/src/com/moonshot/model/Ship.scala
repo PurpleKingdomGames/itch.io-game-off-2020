@@ -3,18 +3,26 @@ package com.moonshot.model
 import indigo._
 import indigoextras.geometry.BoundingBox
 import indigoextras.geometry.Vertex
+import com.moonshot.model.ShipControl.Idle
+import com.moonshot.model.ShipControl.TurnLeft
+import com.moonshot.model.ShipControl.TurnRight
+import com.moonshot.model.ShipControl.Thrust
+import com.moonshot.model.ShipControl.ThrustLeft
+import com.moonshot.model.ShipControl.ThrustRight
+import scala.annotation.nowarn
 
-final case class Ship(health: Int, speed: Double, coords: Vector2, currentSpeed: Vector2, targetSpeed: Vector2) {
-  val maxSpeed: Double         = 300 * speed * 0.5
-  val acceleration: Double     = 25;
+final case class Ship(health: Int, force: Vector2, coords: Vector2, angle: Radians) {
   val boundingBox: BoundingBox = new BoundingBox(new Vertex(coords.x, coords.y), new Vertex(32, 32));
 
-  def update(gameTime: GameTime, asteroids: List[BoundingBox]) =
+  def update(gameTime: GameTime, asteroids: List[BoundingBox], shipControl: ShipControl, screenBounds: BoundingBox) =
     if (this.health < 1)
       this
+        .updateMove(gameTime, ShipControl.TurnRight)
+        .clampTo(screenBounds)
     else
       this
-        .updateMove(gameTime)
+        .updateMove(gameTime, shipControl)
+        .clampTo(screenBounds)
         .updateAsteroidCollisions(asteroids)
 
   def moveBy(x: Double, y: Double) =
@@ -28,49 +36,62 @@ final case class Ship(health: Int, speed: Double, coords: Vector2, currentSpeed:
       )
     )
 
-  def moveRight() =
-    this.copy(targetSpeed = targetSpeed.withX(maxSpeed))
-
-  def moveLeft() =
-    this.copy(targetSpeed = targetSpeed.withX(-maxSpeed))
-
-  def moveUp() =
-    this.copy(targetSpeed = targetSpeed.withY(-maxSpeed))
-
-  def moveDown() =
-    this.copy(targetSpeed = targetSpeed.withY(maxSpeed))
-
-  def stopHorizontal() =
-    this.copy(targetSpeed = targetSpeed.withX(0))
-
-  def stopVertical() =
-    this.copy(targetSpeed = targetSpeed.withY(0))
-
   def toScreenSpace: Point =
     coords.toPoint
 
-  def updateMove(gameTime: GameTime) = {
-    val newSpeed = currentSpeed + ((targetSpeed - currentSpeed) * acceleration * gameTime.delta.value);
-    val clampedSpeed = new Vector2(
-      (
-        if (newSpeed.x > maxSpeed)
-          maxSpeed
-        else if (newSpeed.x < -maxSpeed)
-          -maxSpeed
-        else
-          newSpeed.x
-      ),
-      (
-        if (newSpeed.y > maxSpeed)
-          maxSpeed
-        else if (newSpeed.y < -maxSpeed)
-          -maxSpeed
-        else
-          newSpeed.y
-      )
-    )
+  @nowarn def updateMove(gameTime: GameTime, shipControl: ShipControl): Ship = {
+    val gravity             = 10.0d
+    val resistance          = 0.2d
+    val windResistance      = Vector2(0.95, 0.95)
+    val rotationSpeed       = Radians(7 * gameTime.delta.value)
+    val angleReversed       = angle + Radians.TAUby2
+    val acceleration        = 40 * gameTime.delta.value
+    val gravityForce        = Vector2(0, Math.min(gravity, gravity * gameTime.delta.value))
+    val nextForce           = (force + gravityForce) * windResistance
+    val thrustForce         = Vector2(Math.sin(angleReversed.value) * acceleration, Math.cos(angleReversed.value) * acceleration)
+    val nextForceWithThrust = (force + gravityForce + thrustForce) * windResistance
 
-    this.copy(coords = coords + (clampedSpeed * gameTime.delta.value), currentSpeed = clampedSpeed)
+    shipControl match {
+      case Idle =>
+        this.copy(
+          force = nextForce,
+          coords = coords + nextForce
+        )
+
+      case TurnLeft =>
+        this.copy(
+          force = nextForce,
+          coords = coords + nextForce,
+          angle = angle + rotationSpeed
+        )
+
+      case TurnRight =>
+        this.copy(
+          force = nextForce,
+          coords = coords + nextForce,
+          angle = angle - rotationSpeed
+        )
+
+      case Thrust =>
+        this.copy(
+          force = nextForceWithThrust,
+          coords = coords + nextForceWithThrust
+        )
+
+      case ThrustLeft =>
+        this.copy(
+          force = nextForceWithThrust,
+          coords = coords + nextForceWithThrust,
+          angle = angle + rotationSpeed
+        )
+
+      case ThrustRight =>
+        this.copy(
+          force = nextForceWithThrust,
+          coords = coords + nextForceWithThrust,
+          angle = angle - rotationSpeed
+        )
+    }
   }
 
   def updateAsteroidCollisions(asteroids: List[BoundingBox]) =
@@ -98,6 +119,27 @@ final case class Ship(health: Int, speed: Double, coords: Vector2, currentSpeed:
 }
 
 object Ship {
-  val initial: Ship =
-    Ship(1, 1, Vector2(159, 625), Vector2.zero, Vector2.zero)
+  def initial(screenBounds: BoundingBox): Ship =
+    Ship(1, Vector2.zero, screenBounds.center.toVector2 + Vector2(0, 32), Radians.zero)
+
+  val inputMappings: InputMapping[ShipControl] =
+    InputMapping(
+      Combo.KeyInputs(Key.LEFT_ARROW)                                -> ShipControl.TurnLeft,
+      Combo.KeyInputs(Key.RIGHT_ARROW)                               -> ShipControl.TurnRight,
+      Combo.KeyInputs(Key.UP_ARROW)                                  -> ShipControl.Thrust,
+      Combo.KeyInputs(Key.LEFT_ARROW, Key.UP_ARROW)                  -> ShipControl.ThrustLeft,
+      Combo.KeyInputs(Key.RIGHT_ARROW, Key.UP_ARROW)                 -> ShipControl.ThrustRight,
+      Combo.KeyInputs(Key.LEFT_ARROW, Key.RIGHT_ARROW, Key.UP_ARROW) -> ShipControl.Thrust
+    )
+
+}
+
+sealed trait ShipControl
+object ShipControl {
+  case object Idle        extends ShipControl
+  case object TurnLeft    extends ShipControl
+  case object TurnRight   extends ShipControl
+  case object Thrust      extends ShipControl
+  case object ThrustLeft  extends ShipControl
+  case object ThrustRight extends ShipControl
 }
