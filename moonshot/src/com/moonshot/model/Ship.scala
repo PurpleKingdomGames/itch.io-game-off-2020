@@ -4,8 +4,8 @@ import indigo._
 import indigoextras.geometry.BoundingBox
 import indigoextras.geometry.Vertex
 
-final case class Ship(health: Int, coords: Vector2, currentSpeed:Vector2, targetSpeed: Vector2) {
-  val maxSpeed: Double = 150
+final case class Ship(health: Int, speed : Double, coords: Vector2, currentSpeed:Vector2, targetSpeed: Vector2) {
+  val maxSpeed: Double = 300 * speed * 0.5
   val acceleration: Double = 25;
   val boundingBox: BoundingBox = new BoundingBox(new Vertex(coords.x, coords.y), new Vertex(32, 32));
 
@@ -99,5 +99,5 @@ final case class Ship(health: Int, coords: Vector2, currentSpeed:Vector2, target
 
 object Ship {
   val initial: Ship =
-    Ship(1, Vector2(159, 625), Vector2.zero, Vector2.zero)
+    Ship(1, 1, Vector2(159, 625), Vector2.zero, Vector2.zero)
 }
