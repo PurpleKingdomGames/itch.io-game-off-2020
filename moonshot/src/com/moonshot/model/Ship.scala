@@ -9,7 +9,6 @@ import com.moonshot.model.ShipControl.TurnRight
 import com.moonshot.model.ShipControl.Thrust
 import com.moonshot.model.ShipControl.ThrustLeft
 import com.moonshot.model.ShipControl.ThrustRight
-import scala.annotation.nowarn
 
 final case class Ship(health: Int, force: Vector2, coords: Vector2, angle: Radians) {
   val boundingBox: BoundingBox = new BoundingBox(new Vertex(coords.x, coords.y), new Vertex(32, 32));
@@ -39,9 +38,8 @@ final case class Ship(health: Int, force: Vector2, coords: Vector2, angle: Radia
   def toScreenSpace: Point =
     coords.toPoint
 
-  @nowarn def updateMove(gameTime: GameTime, shipControl: ShipControl): Ship = {
+  def updateMove(gameTime: GameTime, shipControl: ShipControl): Ship = {
     val gravity             = 10.0d
-    val resistance          = 0.2d
     val windResistance      = Vector2(0.95, 0.95)
     val rotationSpeed       = Radians(7 * gameTime.delta.value)
     val angleReversed       = angle + Radians.TAUby2
