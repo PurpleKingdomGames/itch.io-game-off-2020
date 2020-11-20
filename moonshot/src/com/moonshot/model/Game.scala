@@ -9,7 +9,7 @@ final case class Game(gameState: GameState, ship: Ship, timeRemainingInSeconds: 
   val maxAsteroids: Int            = 20
   val minAsteroidSpawnRate: Double = 1
   val maxAsteroidSpawnRate: Double = 3
-  val targetVerticalOffset: Double = (Game.maxTimeLimit - 120) * verticalSpeed
+  val targetVerticalOffset: Double = (Game.maxTimeLimit * 0.5) * verticalSpeed
 
   def update(gameTime: GameTime, dice: Dice, shipControl: ShipControl, screenBounds: BoundingBox): GlobalEvent => Outcome[Game] = {
     case FrameTick =>
@@ -88,7 +88,7 @@ final case class Game(gameState: GameState, ship: Ship, timeRemainingInSeconds: 
 }
 
 object Game {
-  val maxTimeLimit: Double = 600 // 10 Minutes
+  val maxTimeLimit: Double      = 600 // 10 Minutes
   val initVerticalSpeed: Double = 40
 
   def initial(screenBounds: BoundingBox): Game =

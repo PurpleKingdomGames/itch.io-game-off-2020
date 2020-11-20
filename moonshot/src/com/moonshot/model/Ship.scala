@@ -10,21 +10,26 @@ import com.moonshot.model.ShipControl.Thrust
 import com.moonshot.model.ShipControl.ThrustLeft
 import com.moonshot.model.ShipControl.ThrustRight
 
-final case class Ship(health: Int, force: Vector2, coords: Vector2, angle: Radians) {
+final case class Ship(health: Int, lives: Int, force: Vector2, coords: Vector2, angle: Radians) {
   val boundingBox: BoundingBox =
-    new BoundingBox(
-        new Vertex(coords.x - 16, coords.y - 24), new Vertex(32, 56));
+    new BoundingBox(new Vertex(coords.x - 16, coords.y - 24), new Vertex(32, 56));
 
   def update(gameTime: GameTime, asteroids: List[BoundingBox], shipControl: ShipControl, screenBounds: BoundingBox) =
     if (this.health < 1)
       this
         .updateMove(gameTime, ShipControl.TurnRight)
         .clampTo(screenBounds.copy(size = screenBounds.size.copy(y = screenBounds.size.y - 16)))
-    else
-      this
+    else {
+      val newShip = this
         .updateMove(gameTime, shipControl)
         .clampTo(screenBounds.copy(size = screenBounds.size.copy(y = screenBounds.size.y - 32)))
         .updateAsteroidCollisions(asteroids)
+
+      if (newShip.health <= 0)
+        newShip.copy(lives = newShip.lives - 1)
+      else
+        newShip
+    }
 
   def moveBy(x: Double, y: Double) =
     this.copy(coords = this.coords + Vector2(x, y))
@@ -120,7 +125,7 @@ final case class Ship(health: Int, force: Vector2, coords: Vector2, angle: Radia
 
 object Ship {
   def initial(screenBounds: BoundingBox): Ship =
-    Ship(1, Vector2.zero, screenBounds.center.toVector2 + Vector2(0, 32), Radians.zero)
+    Ship(1, 3, Vector2.zero, screenBounds.center.toVector2 + Vector2(0, 32), Radians.zero)
 
   val inputMappings: InputMapping[ShipControl] =
     InputMapping(
