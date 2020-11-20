@@ -9,6 +9,7 @@ import com.moonshot.core.Assets
 
 import scala.scalajs.js.annotation.JSExportTopLevel
 import com.moonshot.scenes.Level
+import com.moonshot.scenes.Customisation
 import com.moonshot.viewmodel.ViewModel
 import indigoextras.geometry.BoundingBox
 
@@ -44,10 +45,10 @@ object Moonshot extends IndigoGame[BootData, StartUpData, Model, ViewModel] {
   }
 
   def scenes(bootData: BootData): NonEmptyList[Scene[StartUpData, Model, ViewModel]] =
-    NonEmptyList(Level)
+    NonEmptyList(Level, Customisation)
 
   def initialScene(bootData: BootData): Option[SceneName] =
-    None
+    Some(Level.name)
 
   def setup(
       bootData: BootData,
