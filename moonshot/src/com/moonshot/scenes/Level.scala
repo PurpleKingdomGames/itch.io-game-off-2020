@@ -71,6 +71,11 @@ object Level extends Scene[StartUpData, Model, ViewModel] {
             .moveTo(a.coords.x.toInt, a.coords.y.toInt)
         )
       )
+      .addGameLayerNodes(
+        List(
+          Text("Lives: " ++ model.ship.lives.toString(), 64, 64, 0, Assets.Font.fontKey)
+        )
+      )
   }
 
 }

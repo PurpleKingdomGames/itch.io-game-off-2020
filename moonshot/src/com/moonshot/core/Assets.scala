@@ -6,7 +6,8 @@ object Assets {
 
   val assets: Set[AssetType] =
     Placeholder.assets ++
-      Rocket.assets
+      Rocket.assets ++
+      Font.assets
 
   object Placeholder {
     val assetName =
@@ -61,6 +62,7 @@ object Assets {
   object Font {
     val smallFontName: AssetName = AssetName("smallFontName")
     val fontKey: FontKey         = FontKey("boxy font")
+    val assets                   = Set(AssetType.Image(smallFontName, AssetPath("assets/boxy_font_small.png")))
 
     val fontInfo: FontInfo =
       FontInfo(fontKey, Material.Textured(smallFontName), 320, 230, FontChar("?", 47, 26, 11, 12))
