@@ -13,6 +13,7 @@ import com.moonshot.scenes.Customisation
 import com.moonshot.scenes.loading.Loading
 import com.moonshot.viewmodel.ViewModel
 import indigoextras.geometry.BoundingBox
+import com.moonshot.scenes.FullScreen
 
 @JSExportTopLevel("IndigoGame")
 object Moonshot extends IndigoGame[BootData, StartUpData, Model, ViewModel] {
@@ -33,9 +34,7 @@ object Moonshot extends IndigoGame[BootData, StartUpData, Model, ViewModel] {
       }
 
     val magnification: Int =
-      if (gameViewport == GameViewport.at1080p) 3
-      else if (gameViewport == GameViewport.at720p) 2
-      else 1
+      pickMagnification(gameViewport)
 
     BootResult(
       GameConfig.default
@@ -43,14 +42,19 @@ object Moonshot extends IndigoGame[BootData, StartUpData, Model, ViewModel] {
         .withClearColor(ClearColor.fromHexString("000D93"))
         .withMagnification(magnification)
         .withFrameRate(60),
-      BootData(assetPath, gameViewport.giveDimensions(magnification))
+      BootData(assetPath, gameViewport.giveDimensions(magnification), magnification, gameViewport)
     )
       .withAssets(Assets.loadingAssets(assetPath))
       .withFonts(Assets.Font.fontInfo)
   }
 
   def scenes(bootData: BootData): NonEmptyList[Scene[StartUpData, Model, ViewModel]] =
-    NonEmptyList(Loading(bootData.assetPath, bootData.viewport), Level, Customisation)
+    NonEmptyList(
+      Loading(bootData.assetPath, bootData.viewport),
+      FullScreen,
+      Level,
+      Customisation
+    )
 
   def initialScene(bootData: BootData): Option[SceneName] =
     None
@@ -67,7 +71,9 @@ object Moonshot extends IndigoGame[BootData, StartUpData, Model, ViewModel] {
           bootData.viewport.y.toDouble,
           bootData.viewport.width.toDouble,
           bootData.viewport.height.toDouble
-        )
+        ),
+        bootData.startingMagnification,
+        bootData.gameViewport
       )
     )
 
@@ -75,8 +81,13 @@ object Moonshot extends IndigoGame[BootData, StartUpData, Model, ViewModel] {
     Model.initial(startupData.screenBounds)
 
   def initialViewModel(startupData: StartUpData, model: Model): ViewModel =
-    ViewModel.initial
+    ViewModel.initial(startupData.magnificaiton, startupData.gameViewport)
+
+  def pickMagnification(gameViewport: GameViewport): Int =
+    if (gameViewport.height >= GameViewport.at1080p.height) 3
+    else if (gameViewport.height >= GameViewport.at720p.height) 2
+    else 1
 
 }
 
-final case class BootData(assetPath: String, viewport: Rectangle)
+final case class BootData(assetPath: String, viewport: Rectangle, startingMagnification: Int, gameViewport: GameViewport)

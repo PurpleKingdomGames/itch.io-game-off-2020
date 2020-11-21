@@ -4,12 +4,11 @@ import indigo._
 import indigo.scenes._
 import indigoextras.subsystems._
 
-import indigo.scenes.SceneEvent.JumpTo
+import indigo.scenes.SceneEvent
 import com.moonshot.model.Model
 import com.moonshot.viewmodel.ViewModel
 import com.moonshot.core.StartUpData
 import com.moonshot.core.Assets
-import com.moonshot.scenes.Level
 
 final case class Loading(assetPath: String, screenDimensions: Rectangle) extends Scene[StartUpData, Model, ViewModel] {
 
@@ -55,7 +54,7 @@ final case class Loading(assetPath: String, screenDimensions: Rectangle) extends
 
     case AssetBundleLoaderEvent.Success(_) =>
       Outcome(LoadingState.Complete)
-        .addGlobalEvents(JumpTo(Level.name))
+        .addGlobalEvents(SceneEvent.Next)
 
     case AssetBundleLoaderEvent.Failure(_, _) =>
       Outcome(LoadingState.Error)

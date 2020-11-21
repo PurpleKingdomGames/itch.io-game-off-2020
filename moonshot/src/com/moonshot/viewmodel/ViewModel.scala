@@ -1,12 +1,13 @@
 package com.moonshot.viewmodel
 
 import indigo.shared.time.Seconds
+import indigo.shared.config.GameViewport
 
-final case class ViewModel(level: LevelViewModel)
+final case class ViewModel(level: LevelViewModel, magnification: Int, gameViewport: GameViewport)
 object ViewModel {
 
-  val initial: ViewModel =
-    ViewModel(LevelViewModel(Seconds.zero))
+  def initial(magnification: Int, gameViewport: GameViewport): ViewModel =
+    ViewModel(LevelViewModel(Seconds.zero), magnification, gameViewport)
 
 }
 

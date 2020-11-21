@@ -8,13 +8,15 @@ import com.moonshot.core.Assets
 import com.moonshot.core.StartUpData
 import com.moonshot.model.Fumes
 import com.moonshot.viewmodel.ViewModel
-import com.moonshot.viewmodel.LevelViewModel
 import com.moonshot.model.{Ship, ShipControl}
+import indigo.shared.events.FullScreenEntered
+import indigo.shared.events.FullScreenExited
+import com.moonshot.Moonshot
 
 object Level extends Scene[StartUpData, Model, ViewModel] {
 
   type SceneModel     = Game
-  type SceneViewModel = LevelViewModel
+  type SceneViewModel = ViewModel
 
   def name: SceneName =
     SceneName("level")
@@ -22,8 +24,8 @@ object Level extends Scene[StartUpData, Model, ViewModel] {
   def modelLens: Lens[Model, Game] =
     Lens(_.game, (m, g) => m.copy(game = g))
 
-  def viewModelLens: Lens[ViewModel, LevelViewModel] =
-    Lens(_.level, (vm, l) => vm.copy(level = l))
+  def viewModelLens: Lens[ViewModel, ViewModel] =
+    Lens.keepLatest
 
   def eventFilters: EventFilters =
     EventFilters.Default
@@ -34,9 +36,31 @@ object Level extends Scene[StartUpData, Model, ViewModel] {
   def updateModel(context: FrameContext[StartUpData], model: Game): GlobalEvent => Outcome[Game] =
     e => model.update(context.gameTime, context.dice, context.inputState.mapInputs(Ship.inputMappings, ShipControl.Idle), context.startUpData.screenBounds)(e)
 
-  def updateViewModel(context: FrameContext[StartUpData], model: Game, viewModel: LevelViewModel): GlobalEvent => Outcome[LevelViewModel] = {
+  def updateViewModel(context: FrameContext[StartUpData], model: Game, viewModel: ViewModel): GlobalEvent => Outcome[ViewModel] = {
+    case ViewportResize(gameViewport) =>
+      Outcome(
+        viewModel.copy(
+          magnification = Moonshot.pickMagnification(gameViewport),
+          gameViewport = gameViewport
+        )
+      )
+
+    case FullScreenEntered =>
+      Outcome(
+        viewModel.copy(
+          magnification = Moonshot.pickMagnification(viewModel.gameViewport)
+        )
+      )
+
+    case FullScreenExited =>
+      Outcome(
+        viewModel.copy(
+          magnification = Moonshot.pickMagnification(viewModel.gameViewport)
+        )
+      )
+
     case FrameTick =>
-      if (context.running - viewModel.fumesLastSpawn > Seconds(0.025)) {
+      if (context.running - viewModel.level.fumesLastSpawn > Seconds(0.025)) {
         val fumeEvents =
           if (context.inputState.keyboard.keysAreDown(Key.UP_ARROW))
             List(
@@ -48,7 +72,13 @@ object Level extends Scene[StartUpData, Model, ViewModel] {
             )
           else Nil
 
-        Outcome(viewModel.copy(fumesLastSpawn = context.running))
+        Outcome(
+          viewModel.copy(
+            level = viewModel.level.copy(
+              fumesLastSpawn = context.running
+            )
+          )
+        )
           .addGlobalEvents(fumeEvents)
 
       } else Outcome(viewModel)
@@ -57,7 +87,7 @@ object Level extends Scene[StartUpData, Model, ViewModel] {
       Outcome(viewModel)
   }
 
-  def present(context: FrameContext[StartUpData], model: Game, viewModel: LevelViewModel): SceneUpdateFragment = {
+  def present(context: FrameContext[StartUpData], model: Game, viewModel: ViewModel): SceneUpdateFragment = {
     val shipGraphic = {
       val s = Assets.Rocket.rocket
         .moveTo(model.ship.toScreenSpace)
@@ -92,6 +122,7 @@ object Level extends Scene[StartUpData, Model, ViewModel] {
           Text(model.presentTime, context.startUpData.screenBounds.toRectangle.right - 10, 10, 0, Assets.Font.fontKey).alignRight
         )
       )
+      .withMagnification(viewModel.magnification)
   }
 
 }
