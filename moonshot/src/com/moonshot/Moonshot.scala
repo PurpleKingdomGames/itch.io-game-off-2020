@@ -10,6 +10,7 @@ import com.moonshot.core.Assets
 import scala.scalajs.js.annotation.JSExportTopLevel
 import com.moonshot.scenes.Level
 import com.moonshot.scenes.Customisation
+import com.moonshot.scenes.loading.Loading
 import com.moonshot.viewmodel.ViewModel
 import indigoextras.geometry.BoundingBox
 
@@ -19,6 +20,9 @@ object Moonshot extends IndigoGame[BootData, StartUpData, Model, ViewModel] {
   val eventFilters: EventFilters = EventFilters.Default
 
   def boot(flags: Map[String, String]): BootResult[BootData] = {
+    val assetPath: String =
+      flags.getOrElse("assetPath", "")
+
     val gameViewport =
       (flags.get("width"), flags.get("height")) match {
         case (Some(w), Some(h)) =>
@@ -39,16 +43,17 @@ object Moonshot extends IndigoGame[BootData, StartUpData, Model, ViewModel] {
         .withClearColor(ClearColor.fromHexString("000D93"))
         .withMagnification(magnification)
         .withFrameRate(60),
-      BootData(gameViewport.giveDimensions(magnification))
+      BootData(assetPath, gameViewport.giveDimensions(magnification))
     )
-      .withAssets(Assets.assets)
+      .withAssets(Assets.loadingAssets(assetPath))
+      .withFonts(Assets.Font.fontInfo)
   }
 
   def scenes(bootData: BootData): NonEmptyList[Scene[StartUpData, Model, ViewModel]] =
-    NonEmptyList(Level, Customisation)
+    NonEmptyList(Loading(bootData.assetPath, bootData.viewport), Level, Customisation)
 
   def initialScene(bootData: BootData): Option[SceneName] =
-    Some(Level.name)
+    None
 
   def setup(
       bootData: BootData,
@@ -74,4 +79,4 @@ object Moonshot extends IndigoGame[BootData, StartUpData, Model, ViewModel] {
 
 }
 
-final case class BootData(viewport: Rectangle)
+final case class BootData(assetPath: String, viewport: Rectangle)

@@ -4,10 +4,12 @@ import indigo._
 
 object Assets {
 
-  val assets: Set[AssetType] =
-    Placeholder.assets ++
-      Rocket.assets ++
-      Font.assets
+  def loadingAssets(assetPath: String): Set[AssetType] =
+    Font.assets(assetPath)
+
+  def dynamicAssets(assetPath: String): Set[AssetType] =
+    Placeholder.assets(assetPath) ++
+      Rocket.assets(assetPath)
 
   object Placeholder {
     val assetName =
@@ -24,9 +26,9 @@ object Assets {
       Graphic(Rectangle(0, 0, 192, 32), 1, Material.Textured(assetName))
         .withCrop(Rectangle(128, 0, 32, 32))
 
-    val assets: Set[AssetType] =
+    def assets(assetPath: String): Set[AssetType] =
       Set(
-        AssetType.Image(AssetName("squares"), AssetPath("assets/squares.png"))
+        AssetType.Image(AssetName("squares"), AssetPath(assetPath + "assets/squares.png"))
       )
 
   }
@@ -36,9 +38,9 @@ object Assets {
     val name =
       AssetName("rocket")
 
-    val assets: Set[AssetType] =
+    def assets(assetPath: String): Set[AssetType] =
       Set(
-        AssetType.Image(name, AssetPath("assets/rocket.png"))
+        AssetType.Image(name, AssetPath(assetPath + "assets/rocket.png"))
       )
 
     val rocket: Graphic =
@@ -62,7 +64,9 @@ object Assets {
   object Font {
     val smallFontName: AssetName = AssetName("smallFontName")
     val fontKey: FontKey         = FontKey("boxy font")
-    val assets                   = Set(AssetType.Image(smallFontName, AssetPath("assets/boxy_font_small.png")))
+
+    def assets(assetPath: String): Set[AssetType] =
+      Set(AssetType.Image(smallFontName, AssetPath(assetPath + "assets/boxy_font_small.png")))
 
     val fontInfo: FontInfo =
       FontInfo(fontKey, Material.Textured(smallFontName), 320, 230, FontChar("?", 47, 26, 11, 12))
@@ -116,5 +120,6 @@ object Assets {
         .addChar(FontChar("/", 150, 0, 9, 12))
         .addChar(FontChar(":", 2, 26, 5, 12))
         .addChar(FontChar("_", 42, 65, 9, 12))
+        .addChar(FontChar("%", 47, 0, 14, 12))
   }
 }
