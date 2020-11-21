@@ -5,11 +5,11 @@ import indigo.shared.events.KeyboardEvent.KeyUp
 import indigo.shared.time.GameTime
 import indigoextras.geometry.BoundingBox
 
-final case class Game(gameState: GameState, ship: Ship, timeRemainingInSeconds: Double, asteroids: List[Asteroid], verticalSpeed: Double, verticalOffset: Double, nextAsteroidSpawn: Double) {
+final case class Game(gameState: GameState, ship: Ship, timeRemainingInSeconds: Seconds, asteroids: List[Asteroid], verticalSpeed: Double, verticalOffset: Double, nextAsteroidSpawn: Double) {
   val maxAsteroids: Int            = 20
   val minAsteroidSpawnRate: Double = 1
   val maxAsteroidSpawnRate: Double = 3
-  val targetVerticalOffset: Double = (Game.maxTimeLimit * 0.5) * verticalSpeed
+  val targetVerticalOffset: Double = (Game.maxTimeLimit.toDouble * 0.5) * verticalSpeed
 
   def update(gameTime: GameTime, dice: Dice, shipControl: ShipControl, screenBounds: BoundingBox): GlobalEvent => Outcome[Game] = {
     case FrameTick =>
@@ -24,7 +24,7 @@ final case class Game(gameState: GameState, ship: Ship, timeRemainingInSeconds: 
           val game = this.copy(gameState = GameState.GamePaused)
           if (game.verticalOffset >= targetVerticalOffset)
             game.copy(gameState = GameState.GameWin)
-          else if (game.timeRemainingInSeconds <= 0)
+          else if (game.timeRemainingInSeconds.toDouble <= 0)
             game.copy(gameState = GameState.GameLoss)
           else
             game
@@ -80,15 +80,25 @@ final case class Game(gameState: GameState, ship: Ship, timeRemainingInSeconds: 
                 && a.coords.y < screenBounds.y + screenBounds.height
             ),
           verticalOffset = verticalOffset + verticalDelta,
-          timeRemainingInSeconds = Math.max(0, timeRemainingInSeconds - gameTime.delta.value)
+          timeRemainingInSeconds = Seconds(Math.max(0, (timeRemainingInSeconds - gameTime.delta).toDouble))
         )
         .spawnAsteroid(gameTime, dice, screenBounds)
     )
   }
+
+  def presentTime: String = {
+    val intSeconds = timeRemainingInSeconds.toInt
+    val minutes    = intSeconds / 60
+    val seconds    = intSeconds % 60
+
+    (if (minutes < 10) "0" + minutes.toString else minutes.toString) +
+      ":" +
+      (if (seconds < 10) "0" + seconds.toString else seconds.toString)
+  }
 }
 
 object Game {
-  val maxTimeLimit: Double      = 600 // 10 Minutes
+  val maxTimeLimit: Seconds     = Seconds(600) // 10 Minutes
   val initVerticalSpeed: Double = 40
 
   def initial(screenBounds: BoundingBox): Game =

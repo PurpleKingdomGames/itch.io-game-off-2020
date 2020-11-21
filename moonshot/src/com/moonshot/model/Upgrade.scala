@@ -1,11 +1,13 @@
 package com.moonshot.model
 
-final case class Upgrade(speedBoost: Double, healthBoost: Int, cost: Double) {}
+import indigo._
+
+final case class Upgrade(speedBoost: Double, healthBoost: Int, cost: Seconds) {}
 
 object Upgrade {
   val armour =
-    Upgrade(0, 1, 0.5)
+    Upgrade(0, 1, Seconds(0.5))
 
   val thrusters =
-    Upgrade(2, 0, 1)
+    Upgrade(2, 0, Seconds(1))
 }
