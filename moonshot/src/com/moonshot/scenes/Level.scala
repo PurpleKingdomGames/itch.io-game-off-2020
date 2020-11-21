@@ -60,7 +60,7 @@ object Level extends Scene[StartUpData, Model, ViewModel] {
       )
 
     case FrameTick =>
-      if (context.running - viewModel.level.fumesLastSpawn > Seconds(0.025)) {
+      if (context.running - viewModel.fumesLastSpawn > Seconds(0.025)) {
         val fumeEvents =
           if (context.inputState.keyboard.keysAreDown(Key.UP_ARROW))
             List(
@@ -74,9 +74,7 @@ object Level extends Scene[StartUpData, Model, ViewModel] {
 
         Outcome(
           viewModel.copy(
-            level = viewModel.level.copy(
-              fumesLastSpawn = context.running
-            )
+            fumesLastSpawn = context.running
           )
         )
           .addGlobalEvents(fumeEvents)
