@@ -9,6 +9,7 @@ import com.moonshot.core.Assets
 
 import scala.scalajs.js.annotation.JSExportTopLevel
 import com.moonshot.scenes.Level
+import com.moonshot.scenes.LevelSelect
 import com.moonshot.scenes.Customisation
 import com.moonshot.scenes.loading.Loading
 import com.moonshot.viewmodel.ViewModel
@@ -52,6 +53,7 @@ object Moonshot extends IndigoGame[BootData, StartUpData, Model, ViewModel] {
     NonEmptyList(
       Loading(bootData.assetPath, bootData.viewport),
       FullScreen,
+      LevelSelect,
       Level,
       Customisation
     )

@@ -5,7 +5,16 @@ import indigo.shared.events.KeyboardEvent.KeyUp
 import indigo.shared.time.GameTime
 import indigoextras.geometry.BoundingBox
 
-final case class Game(gameState: GameState, ship: Ship, timeRemainingInSeconds: Seconds, asteroids: List[Asteroid], verticalSpeed: Double, verticalOffset: Double, nextAsteroidSpawn: Double) {
+final case class Game(
+    levelType: LevelType,
+    gameState: GameState,
+    ship: Ship,
+    timeRemainingInSeconds: Seconds,
+    asteroids: List[Asteroid],
+    verticalSpeed: Double,
+    verticalOffset: Double,
+    nextAsteroidSpawn: Double
+) {
   val maxAsteroids: Int            = 20
   val minAsteroidSpawnRate: Double = 1
   val maxAsteroidSpawnRate: Double = 3
@@ -102,7 +111,7 @@ object Game {
   val initVerticalSpeed: Double = 40
 
   def initial(screenBounds: BoundingBox): Game =
-    Game(GameState.GameRunning, Ship.initial(screenBounds), maxTimeLimit, Nil, initVerticalSpeed, 0, 0)
+    Game(LevelType.Lander, GameState.GameRunning, Ship.initial(screenBounds), maxTimeLimit, Nil, initVerticalSpeed, 0, 0)
 }
 
 sealed trait GameState
