@@ -58,9 +58,23 @@ object Level extends Scene[StartUpData, Model, ViewModel] {
   }
 
   def present(context: FrameContext[StartUpData], model: Game, viewModel: LevelViewModel): SceneUpdateFragment = {
-    val shipGraphic = Assets.Rocket.rocket
-      .moveTo(model.ship.toScreenSpace)
-      .rotate(model.ship.angle)
+    val shipGraphic = {
+      val s = Assets.Rocket.rocket
+        .moveTo(model.ship.toScreenSpace)
+        .rotate(model.ship.angle)
+
+      val running = context.gameTime.running
+
+      if (running - model.ship.lastImpact < Ship.invulnerableFor)
+        Signal
+          .Pulse(Millis(100).toSeconds)
+          .map { p =>
+            if (p) s.withOverlay(Overlay.Color(RGBA.White))
+            else s
+          }
+          .at(running)
+      else s
+    }
 
     val asteroidGraphic = Assets.Placeholder.blueBox
 
@@ -73,7 +87,8 @@ object Level extends Scene[StartUpData, Model, ViewModel] {
       )
       .addGameLayerNodes(
         List(
-          Text("Health: " + model.ship.lives.toString(), 10, 10, 0, Assets.Font.fontKey),
+          Text("Lives: " + model.ship.lives.toString(), 10, 10, 0, Assets.Font.fontKey),
+          Text("Health: " + model.ship.health.toString(), 10, 30, 0, Assets.Font.fontKey),
           Text(model.presentTime, context.startUpData.screenBounds.toRectangle.right - 10, 10, 0, Assets.Font.fontKey).alignRight
         )
       )

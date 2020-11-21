@@ -10,12 +10,12 @@ import com.moonshot.model.ShipControl.Thrust
 import com.moonshot.model.ShipControl.ThrustLeft
 import com.moonshot.model.ShipControl.ThrustRight
 
-final case class Ship(health: Int, lives: Int, force: Vector2, coords: Vector2, angle: Radians) {
+final case class Ship(health: Int, lives: Int, force: Vector2, coords: Vector2, angle: Radians, lastImpact: Seconds) {
   val boundingBox: BoundingBox =
     new BoundingBox(new Vertex(coords.x - 16, coords.y - 24), new Vertex(32, 56));
 
   def update(gameTime: GameTime, asteroids: List[BoundingBox], shipControl: ShipControl, screenBounds: BoundingBox) =
-    if (this.health < 1)
+    if (health < 1)
       this
         .updateMove(gameTime, ShipControl.TurnRight)
         .clampTo(screenBounds.copy(size = screenBounds.size.copy(y = screenBounds.size.y - 16)))
@@ -23,7 +23,7 @@ final case class Ship(health: Int, lives: Int, force: Vector2, coords: Vector2, 
       val newShip = this
         .updateMove(gameTime, shipControl)
         .clampTo(screenBounds.copy(size = screenBounds.size.copy(y = screenBounds.size.y - 32)))
-        .updateAsteroidCollisions(asteroids)
+        .updateAsteroidCollisions(gameTime, asteroids)
 
       if (newShip.health <= 0)
         newShip.copy(lives = newShip.lives - 1)
@@ -99,10 +99,14 @@ final case class Ship(health: Int, lives: Int, force: Vector2, coords: Vector2, 
     }
   }
 
-  def updateAsteroidCollisions(asteroids: List[BoundingBox]) =
+  def updateAsteroidCollisions(gameTime: GameTime, asteroids: List[BoundingBox]): Ship =
     asteroids.foldLeft(this) { (s, a) =>
-      if (a.overlaps(s.boundingBox) && checkShipCollisionAgainstCircle(s.boundingBox, a))
-        s.copy(health = s.health - 1)
+      if (gameTime.running - lastImpact > Ship.invulnerableFor && a.overlaps(s.boundingBox) && checkShipCollisionAgainstCircle(s.boundingBox, a))
+        s.copy(
+          health = s.health - 1,
+          lastImpact = gameTime.running,
+          force = Vector2(-force.x * 1.5, -force.y * 1.5)
+        )
       else
         s
     }
@@ -124,8 +128,12 @@ final case class Ship(health: Int, lives: Int, force: Vector2, coords: Vector2, 
 }
 
 object Ship {
+
+  val invulnerableFor: Seconds =
+    Seconds(1.5)
+
   def initial(screenBounds: BoundingBox): Ship =
-    Ship(1, 3, Vector2.zero, screenBounds.center.toVector2 + Vector2(0, 32), Radians.zero)
+    Ship(3, 3, Vector2.zero, screenBounds.center.toVector2 + Vector2(0, 32), Radians.zero, Seconds.zero)
 
   val inputMappings: InputMapping[ShipControl] =
     InputMapping(
