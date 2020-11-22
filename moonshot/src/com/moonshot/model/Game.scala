@@ -20,10 +20,15 @@ final case class Game(
   val maxAsteroidSpawnRate: Double = 3
   val targetVerticalOffset: Double = (Game.maxTimeLimit.toDouble * 0.5) * verticalSpeed
 
+  def withState(gameState: GameState) =
+    this.copy(gameState = gameState)
+
   def update(gameTime: GameTime, dice: Dice, shipControl: ShipControl, screenBounds: BoundingBox): GlobalEvent => Outcome[Game] = {
     case FrameTick =>
       if (gameState == GameState.GameRunning)
         updateRunningGame(gameTime, dice, shipControl, screenBounds)
+      else if (gameState == GameState.ShipCustomisation)
+        updateCustomisationScreen(gameTime, screenBounds)
       else
         Outcome(this)
 
@@ -94,6 +99,15 @@ final case class Game(
         .spawnAsteroid(gameTime, dice, screenBounds)
     )
   }
+
+  def updateCustomisationScreen(gameTime: GameTime, screenBounds: BoundingBox) =
+    Outcome(
+      this
+        .copy(
+          ship = ship
+            .update(gameTime, Nil, ShipControl.Idle, screenBounds)
+        )
+    )
 
   def presentTime: String = {
     val intSeconds = timeRemainingInSeconds.toInt
