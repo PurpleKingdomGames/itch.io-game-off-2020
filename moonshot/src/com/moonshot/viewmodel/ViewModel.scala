@@ -9,13 +9,14 @@ import indigo.shared.events.FullScreenExited
 import indigo.shared.events.FullScreenEntered
 import indigo.scenes.Lens
 
-final case class ViewModel(level: LevelViewModel, viewInfo: ViewInfo)
+final case class ViewModel(level: LevelViewModel, viewInfo: ViewInfo, customisation: CustomisationViewModel)
 object ViewModel {
 
   def initial(magnification: Int, gameViewport: GameViewport): ViewModel =
     ViewModel(
       LevelViewModel.initial,
-      ViewInfo.initial(magnification, gameViewport)
+      ViewInfo.initial(magnification, gameViewport),
+      CustomisationViewModel(Seconds.zero)
     )
 
 }
@@ -71,3 +72,5 @@ object ViewInfo {
       )
   }
 }
+
+final case class CustomisationViewModel(screenEnteredAt: Seconds)

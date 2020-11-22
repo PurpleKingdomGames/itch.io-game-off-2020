@@ -38,7 +38,7 @@ object LevelSelect extends Scene[StartUpData, Model, ViewModel] {
 
     case KeyboardEvent.KeyUp(Key.ENTER) =>
       Outcome(model)
-        .addGlobalEvents(SceneEvent.Next)
+        .addGlobalEvents(SceneEvent.JumpTo(Level.name))
 
     case _ =>
       Outcome(model)

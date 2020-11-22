@@ -39,7 +39,7 @@ object FullScreen extends Scene[StartUpData, Model, ViewModel] {
 
     case KeyboardEvent.KeyUp(Key.ENTER) =>
       Outcome(model)
-        .addGlobalEvents(SceneEvent.Next)
+        .addGlobalEvents(SceneEvent.JumpTo(LevelSelect.name))
 
     case _ =>
       Outcome(model)

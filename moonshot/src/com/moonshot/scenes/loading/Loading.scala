@@ -9,6 +9,7 @@ import com.moonshot.model.Model
 import com.moonshot.viewmodel.ViewModel
 import com.moonshot.core.StartUpData
 import com.moonshot.core.Assets
+import com.moonshot.scenes.FullScreen
 
 final case class Loading(assetPath: String, screenDimensions: Rectangle) extends Scene[StartUpData, Model, ViewModel] {
 
@@ -54,7 +55,7 @@ final case class Loading(assetPath: String, screenDimensions: Rectangle) extends
 
     case AssetBundleLoaderEvent.Success(_) =>
       Outcome(LoadingState.Complete)
-        .addGlobalEvents(SceneEvent.Next)
+        .addGlobalEvents(SceneEvent.JumpTo(FullScreen.name))
 
     case AssetBundleLoaderEvent.Failure(_, _) =>
       Outcome(LoadingState.Error)

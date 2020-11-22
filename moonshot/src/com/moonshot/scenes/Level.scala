@@ -10,7 +10,6 @@ import com.moonshot.model.Fumes
 import com.moonshot.viewmodel.ViewModel
 import com.moonshot.model.{Ship, ShipControl}
 import com.moonshot.viewmodel.ViewInfo
-import indigo.scenes.SceneEvent.Next
 import indigo.shared.datatypes.TextAlignment
 import com.moonshot.model.GameState
 
@@ -34,13 +33,16 @@ object Level extends Scene[StartUpData, Model, ViewModel] {
   def subSystems: Set[SubSystem] =
     Set(Fumes.subSystem)
 
-  def updateModel(context: FrameContext[StartUpData], model: Game): GlobalEvent => Outcome[Game] =
-    e => model.update(context.gameTime, context.dice, context.inputState.mapInputs(Ship.inputMappings, ShipControl.Idle), context.startUpData.screenBounds)(e)
+  def updateModel(context: FrameContext[StartUpData], model: Game): GlobalEvent => Outcome[Game] = {
+    case ResetLevel =>
+      Outcome(Game.initial(context.startUpData.screenBounds))
+
+    case e =>
+      model.update(context.gameTime, context.dice, context.inputState.mapInputs(Ship.inputMappings, ShipControl.Idle), context.startUpData.screenBounds)(e)
+  }
 
   def updateViewModel(context: FrameContext[StartUpData], model: Game, viewModel: ViewModel): GlobalEvent => Outcome[ViewModel] =
     ViewInfo.fullScreenToggleViewModel(viewModel).orElse {
-      case Next =>
-        Outcome(viewModel.copy(level = viewModel.level.copy(firstLoad = context.gameTime.running)))
 
       case FrameTick =>
         if (context.running - viewModel.level.fumesLastSpawn > Seconds(0.025)) {
@@ -57,7 +59,7 @@ object Level extends Scene[StartUpData, Model, ViewModel] {
 
           val sceneEvents =
             if (model.ship.lastDeath != Seconds.zero && ((context.running - model.ship.lastDeath).value * 0.5) >= 1)
-              List(SceneEvent.Next)
+              List(SceneEvent.JumpTo(Customisation.name), StartCustomisationAt(context.running))
             else
               Nil
 
@@ -124,7 +126,7 @@ object Level extends Scene[StartUpData, Model, ViewModel] {
             .moveTo(a.coords.x.toInt, a.coords.y.toInt)
         )
       )
-      .addGameLayerNodes(
+      .addUiLayerNodes(
         List(
           Text("Lives: " + model.ship.lives.toString(), 10, 10, 0, Assets.Font.fontKey),
           Text("Health: " + model.ship.health.toString(), 10, 30, 0, Assets.Font.fontKey),
@@ -146,7 +148,7 @@ object Level extends Scene[StartUpData, Model, ViewModel] {
             )
         )
       )
-      .withColorOverlay(
+      .withGameColorOverlay(
         if (model.ship.lastDeath == Seconds.zero)
           RGBA.Zero
         else
@@ -156,3 +158,5 @@ object Level extends Scene[StartUpData, Model, ViewModel] {
   }
 
 }
+
+final case object ResetLevel extends GlobalEvent
