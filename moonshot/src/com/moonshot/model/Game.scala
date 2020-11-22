@@ -29,7 +29,7 @@ final case class Game(
 
     case KeyUp(Key.ESCAPE) =>
       Outcome(
-        if (gameState == GameState.GameRunning) {
+        if (gameState == GameState.GameRunning && ship.lastDeath == Seconds.zero) {
           val game = this.copy(gameState = GameState.GamePaused)
           if (game.verticalOffset >= targetVerticalOffset)
             game.copy(gameState = GameState.GameWin)

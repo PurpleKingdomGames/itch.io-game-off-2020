@@ -55,6 +55,12 @@ object Level extends Scene[StartUpData, Model, ViewModel] {
               )
             else Nil
 
+          val sceneEvents =
+            if (model.ship.lastDeath != Seconds.zero && ((context.running - model.ship.lastDeath).value * 0.5) >= 1)
+              List(SceneEvent.Next)
+            else
+              Nil
+
           Outcome(
             viewModel.copy(
               level = viewModel.level.copy(
@@ -63,6 +69,7 @@ object Level extends Scene[StartUpData, Model, ViewModel] {
             )
           )
             .addGlobalEvents(fumeEvents)
+            .addGlobalEvents(sceneEvents)
 
         } else Outcome(viewModel)
 
@@ -138,6 +145,12 @@ object Level extends Scene[StartUpData, Model, ViewModel] {
                 0
             )
         )
+      )
+      .withColorOverlay(
+        if (model.ship.lastDeath == Seconds.zero)
+          RGBA.Zero
+        else
+          RGBA.Black.withAmount(Math.min(1, (running - model.ship.lastDeath).value * 0.5))
       )
       .withMagnification(viewModel.viewInfo.magnification)
   }
