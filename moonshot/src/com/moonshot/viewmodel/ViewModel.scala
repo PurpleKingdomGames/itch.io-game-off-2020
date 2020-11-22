@@ -20,10 +20,10 @@ object ViewModel {
 
 }
 
-final case class LevelViewModel(fumesLastSpawn: Seconds)
+final case class LevelViewModel(firstLoad: Seconds, fumesLastSpawn: Seconds)
 object LevelViewModel {
   val initial: LevelViewModel =
-    LevelViewModel(Seconds.zero)
+    LevelViewModel(Seconds.zero, Seconds.zero)
 }
 
 final case class ViewInfo(magnification: Int, gameViewport: GameViewport)

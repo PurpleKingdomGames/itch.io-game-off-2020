@@ -10,6 +10,8 @@ import com.moonshot.model.Fumes
 import com.moonshot.viewmodel.ViewModel
 import com.moonshot.model.{Ship, ShipControl}
 import com.moonshot.viewmodel.ViewInfo
+import indigo.scenes.SceneEvent.Next
+import indigo.shared.datatypes.TextAlignment
 
 object Level extends Scene[StartUpData, Model, ViewModel] {
 
@@ -36,6 +38,9 @@ object Level extends Scene[StartUpData, Model, ViewModel] {
 
   def updateViewModel(context: FrameContext[StartUpData], model: Game, viewModel: ViewModel): GlobalEvent => Outcome[ViewModel] =
     ViewInfo.fullScreenToggleViewModel(viewModel).orElse {
+      case Next =>
+        Outcome(viewModel.copy(level = viewModel.level.copy(firstLoad = context.gameTime.running)))
+
       case FrameTick =>
         if (context.running - viewModel.level.fumesLastSpawn > Seconds(0.025)) {
           val fumeEvents =
@@ -65,12 +70,13 @@ object Level extends Scene[StartUpData, Model, ViewModel] {
     }
 
   def present(context: FrameContext[StartUpData], model: Game, viewModel: ViewModel): SceneUpdateFragment = {
+    val running              = context.gameTime.running
+    val textWaitTime: Double = 3
+
     val shipGraphic = {
       val s = Assets.Rocket.rocket
         .moveTo(model.ship.toScreenSpace)
         .rotate(model.ship.angle)
-
-      val running = context.gameTime.running
 
       if (running - model.ship.lastImpact < Ship.invulnerableFor)
         Signal
@@ -82,6 +88,24 @@ object Level extends Scene[StartUpData, Model, ViewModel] {
           .at(running)
       else s
     }
+
+    val openingText =
+      Text(
+        "5 minutes to Dinner!",
+        viewModel.viewInfo.gameViewport.horizontalMiddle / 2,
+        viewModel.viewInfo.gameViewport.verticalMiddle / 2,
+        0,
+        Assets.Font.fontKey
+      )
+        .withAlignment(TextAlignment.Center)
+        .withAlpha(
+          if (viewModel.level.firstLoad == Seconds.zero)
+            0
+          else if ((running.value - viewModel.level.firstLoad.value) < textWaitTime)
+            1
+          else
+            Math.max(0, 1 - ((running.value - viewModel.level.firstLoad.value - textWaitTime) * 0.3))
+        )
 
     val asteroidGraphic = Assets.Placeholder.blueBox
 
@@ -96,7 +120,8 @@ object Level extends Scene[StartUpData, Model, ViewModel] {
         List(
           Text("Lives: " + model.ship.lives.toString(), 10, 10, 0, Assets.Font.fontKey),
           Text("Health: " + model.ship.health.toString(), 10, 30, 0, Assets.Font.fontKey),
-          Text(model.presentTime, context.startUpData.screenBounds.toRectangle.right - 10, 10, 0, Assets.Font.fontKey).alignRight
+          Text(model.presentTime, context.startUpData.screenBounds.toRectangle.right - 10, 10, 0, Assets.Font.fontKey).alignRight,
+          openingText
         )
       )
       .withMagnification(viewModel.viewInfo.magnification)
