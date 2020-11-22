@@ -9,8 +9,6 @@ import com.moonshot.core.Assets
 import indigo.shared.events.EnterFullScreen
 import indigo.shared.events.ExitFullScreen
 import com.moonshot.Moonshot
-import indigo.shared.events.FullScreenEntered
-import indigo.shared.events.FullScreenExited
 
 object FullScreen extends Scene[StartUpData, Model, ViewModel] {
 
@@ -47,32 +45,11 @@ object FullScreen extends Scene[StartUpData, Model, ViewModel] {
       Outcome(model)
   }
 
-  def updateViewModel(context: FrameContext[StartUpData], model: WindowMode, viewModel: ViewModel): GlobalEvent => Outcome[ViewModel] = {
-    case ViewportResize(gameViewport) =>
-      Outcome(
-        viewModel.copy(
-          magnification = Moonshot.pickMagnification(gameViewport),
-          gameViewport = gameViewport
-        )
-      )
-
-    case FullScreenEntered =>
-      Outcome(
-        viewModel.copy(
-          magnification = Moonshot.pickMagnification(viewModel.gameViewport)
-        )
-      )
-
-    case FullScreenExited =>
-      Outcome(
-        viewModel.copy(
-          magnification = Moonshot.pickMagnification(viewModel.gameViewport)
-        )
-      )
-
-    case _ =>
-      Outcome(viewModel)
-  }
+  def updateViewModel(context: FrameContext[StartUpData], model: WindowMode, viewModel: ViewModel): GlobalEvent => Outcome[ViewModel] =
+    Moonshot.fullScreenToggleProcessing(viewModel).orElse {
+      case _ =>
+        Outcome(viewModel)
+    }
 
   def present(context: FrameContext[StartUpData], model: WindowMode, viewModel: ViewModel): SceneUpdateFragment =
     SceneUpdateFragment(

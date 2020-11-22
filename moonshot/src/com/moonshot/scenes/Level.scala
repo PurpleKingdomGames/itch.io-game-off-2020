@@ -9,8 +9,6 @@ import com.moonshot.core.StartUpData
 import com.moonshot.model.Fumes
 import com.moonshot.viewmodel.ViewModel
 import com.moonshot.model.{Ship, ShipControl}
-import indigo.shared.events.FullScreenEntered
-import indigo.shared.events.FullScreenExited
 import com.moonshot.Moonshot
 
 object Level extends Scene[StartUpData, Model, ViewModel] {
@@ -36,54 +34,33 @@ object Level extends Scene[StartUpData, Model, ViewModel] {
   def updateModel(context: FrameContext[StartUpData], model: Game): GlobalEvent => Outcome[Game] =
     e => model.update(context.gameTime, context.dice, context.inputState.mapInputs(Ship.inputMappings, ShipControl.Idle), context.startUpData.screenBounds)(e)
 
-  def updateViewModel(context: FrameContext[StartUpData], model: Game, viewModel: ViewModel): GlobalEvent => Outcome[ViewModel] = {
-    case ViewportResize(gameViewport) =>
-      Outcome(
-        viewModel.copy(
-          magnification = Moonshot.pickMagnification(gameViewport),
-          gameViewport = gameViewport
-        )
-      )
-
-    case FullScreenEntered =>
-      Outcome(
-        viewModel.copy(
-          magnification = Moonshot.pickMagnification(viewModel.gameViewport)
-        )
-      )
-
-    case FullScreenExited =>
-      Outcome(
-        viewModel.copy(
-          magnification = Moonshot.pickMagnification(viewModel.gameViewport)
-        )
-      )
-
-    case FrameTick =>
-      if (context.running - viewModel.fumesLastSpawn > Seconds(0.025)) {
-        val fumeEvents =
-          if (context.inputState.keyboard.keysAreDown(Key.UP_ARROW))
-            List(
-              Fumes.spawn(
-                model.ship.toScreenSpace,
-                Seconds(context.dice.rollDouble * 0.5 + 0.5),
-                Radians(model.ship.angle.value + ((context.dice.rollDouble * 0.2) - 0.1))
+  def updateViewModel(context: FrameContext[StartUpData], model: Game, viewModel: ViewModel): GlobalEvent => Outcome[ViewModel] =
+    Moonshot.fullScreenToggleProcessing(viewModel).orElse {
+      case FrameTick =>
+        if (context.running - viewModel.fumesLastSpawn > Seconds(0.025)) {
+          val fumeEvents =
+            if (context.inputState.keyboard.keysAreDown(Key.UP_ARROW))
+              List(
+                Fumes.spawn(
+                  model.ship.toScreenSpace,
+                  Seconds(context.dice.rollDouble * 0.5 + 0.5),
+                  Radians(model.ship.angle.value + ((context.dice.rollDouble * 0.2) - 0.1))
+                )
               )
+            else Nil
+
+          Outcome(
+            viewModel.copy(
+              fumesLastSpawn = context.running
             )
-          else Nil
-
-        Outcome(
-          viewModel.copy(
-            fumesLastSpawn = context.running
           )
-        )
-          .addGlobalEvents(fumeEvents)
+            .addGlobalEvents(fumeEvents)
 
-      } else Outcome(viewModel)
+        } else Outcome(viewModel)
 
-    case _ =>
-      Outcome(viewModel)
-  }
+      case _ =>
+        Outcome(viewModel)
+    }
 
   def present(context: FrameContext[StartUpData], model: Game, viewModel: ViewModel): SceneUpdateFragment = {
     val shipGraphic = {

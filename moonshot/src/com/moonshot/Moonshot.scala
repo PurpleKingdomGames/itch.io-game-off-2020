@@ -15,6 +15,9 @@ import com.moonshot.scenes.loading.Loading
 import com.moonshot.viewmodel.ViewModel
 import indigoextras.geometry.BoundingBox
 import com.moonshot.scenes.FullScreen
+import indigo.shared.events.GlobalEvent
+import indigo.shared.events.FullScreenEntered
+import indigo.shared.events.FullScreenExited
 
 @JSExportTopLevel("IndigoGame")
 object Moonshot extends IndigoGame[BootData, StartUpData, Model, ViewModel] {
@@ -89,6 +92,30 @@ object Moonshot extends IndigoGame[BootData, StartUpData, Model, ViewModel] {
     if (gameViewport.height >= GameViewport.at1080p.height) 3
     else if (gameViewport.height >= GameViewport.at720p.height) 2
     else 1
+
+  def fullScreenToggleProcessing(viewModel: ViewModel): PartialFunction[GlobalEvent, Outcome[ViewModel]] = {
+    case ViewportResize(gameViewport) =>
+      Outcome(
+        viewModel.copy(
+          magnification = Moonshot.pickMagnification(gameViewport),
+          gameViewport = gameViewport
+        )
+      )
+
+    case FullScreenEntered =>
+      Outcome(
+        viewModel.copy(
+          magnification = Moonshot.pickMagnification(viewModel.gameViewport)
+        )
+      )
+
+    case FullScreenExited =>
+      Outcome(
+        viewModel.copy(
+          magnification = Moonshot.pickMagnification(viewModel.gameViewport)
+        )
+      )
+  }
 
 }
 
