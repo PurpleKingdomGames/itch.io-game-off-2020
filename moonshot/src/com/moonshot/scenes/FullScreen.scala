@@ -8,12 +8,12 @@ import com.moonshot.viewmodel.ViewModel
 import com.moonshot.core.Assets
 import indigo.shared.events.EnterFullScreen
 import indigo.shared.events.ExitFullScreen
-import com.moonshot.Moonshot
+import com.moonshot.viewmodel.ViewInfo
 
 object FullScreen extends Scene[StartUpData, Model, ViewModel] {
 
   type SceneModel     = WindowMode
-  type SceneViewModel = ViewModel
+  type SceneViewModel = ViewInfo
 
   def name: SceneName =
     SceneName("fullscreen toggle")
@@ -21,8 +21,8 @@ object FullScreen extends Scene[StartUpData, Model, ViewModel] {
   def modelLens: Lens[Model, WindowMode] =
     Lens(_.windowMode, (m, sm) => m.copy(windowMode = sm))
 
-  def viewModelLens: Lens[ViewModel, ViewModel] =
-    Lens.keepLatest
+  def viewModelLens: Lens[ViewModel, ViewInfo] =
+    ViewInfo.lens
 
   def eventFilters: EventFilters =
     EventFilters.Default
@@ -45,13 +45,13 @@ object FullScreen extends Scene[StartUpData, Model, ViewModel] {
       Outcome(model)
   }
 
-  def updateViewModel(context: FrameContext[StartUpData], model: WindowMode, viewModel: ViewModel): GlobalEvent => Outcome[ViewModel] =
-    Moonshot.fullScreenToggleProcessing(viewModel).orElse {
+  def updateViewModel(context: FrameContext[StartUpData], model: WindowMode, viewModel: ViewInfo): GlobalEvent => Outcome[ViewInfo] =
+    ViewInfo.fullScreenToggleProcessing(viewModel).orElse {
       case _ =>
         Outcome(viewModel)
     }
 
-  def present(context: FrameContext[StartUpData], model: WindowMode, viewModel: ViewModel): SceneUpdateFragment =
+  def present(context: FrameContext[StartUpData], model: WindowMode, viewModel: ViewInfo): SceneUpdateFragment =
     SceneUpdateFragment(
       Text(model.renderWindowed, 10, 10, 0, Assets.Font.fontKey),
       Text(model.renderFullscreen, 10, 30, 0, Assets.Font.fontKey),

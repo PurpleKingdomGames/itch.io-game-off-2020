@@ -9,7 +9,7 @@ import com.moonshot.core.StartUpData
 import com.moonshot.model.Fumes
 import com.moonshot.viewmodel.ViewModel
 import com.moonshot.model.{Ship, ShipControl}
-import com.moonshot.Moonshot
+import com.moonshot.viewmodel.ViewInfo
 
 object Level extends Scene[StartUpData, Model, ViewModel] {
 
@@ -35,9 +35,9 @@ object Level extends Scene[StartUpData, Model, ViewModel] {
     e => model.update(context.gameTime, context.dice, context.inputState.mapInputs(Ship.inputMappings, ShipControl.Idle), context.startUpData.screenBounds)(e)
 
   def updateViewModel(context: FrameContext[StartUpData], model: Game, viewModel: ViewModel): GlobalEvent => Outcome[ViewModel] =
-    Moonshot.fullScreenToggleProcessing(viewModel).orElse {
+    ViewInfo.fullScreenToggleViewModel(viewModel).orElse {
       case FrameTick =>
-        if (context.running - viewModel.fumesLastSpawn > Seconds(0.025)) {
+        if (context.running - viewModel.level.fumesLastSpawn > Seconds(0.025)) {
           val fumeEvents =
             if (context.inputState.keyboard.keysAreDown(Key.UP_ARROW))
               List(
@@ -51,7 +51,9 @@ object Level extends Scene[StartUpData, Model, ViewModel] {
 
           Outcome(
             viewModel.copy(
-              fumesLastSpawn = context.running
+              level = viewModel.level.copy(
+                fumesLastSpawn = context.running
+              )
             )
           )
             .addGlobalEvents(fumeEvents)
@@ -97,7 +99,7 @@ object Level extends Scene[StartUpData, Model, ViewModel] {
           Text(model.presentTime, context.startUpData.screenBounds.toRectangle.right - 10, 10, 0, Assets.Font.fontKey).alignRight
         )
       )
-      .withMagnification(viewModel.magnification)
+      .withMagnification(viewModel.viewInfo.magnification)
   }
 
 }

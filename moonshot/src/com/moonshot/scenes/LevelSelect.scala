@@ -6,13 +6,13 @@ import com.moonshot.core.StartUpData
 import com.moonshot.model.Model
 import com.moonshot.viewmodel.ViewModel
 import com.moonshot.core.Assets
-import com.moonshot.Moonshot
 import com.moonshot.model.LevelType
+import com.moonshot.viewmodel.ViewInfo
 
 object LevelSelect extends Scene[StartUpData, Model, ViewModel] {
 
   type SceneModel     = LevelType
-  type SceneViewModel = ViewModel
+  type SceneViewModel = ViewInfo
 
   def name: SceneName =
     SceneName("level select")
@@ -20,8 +20,8 @@ object LevelSelect extends Scene[StartUpData, Model, ViewModel] {
   def modelLens: Lens[Model, LevelType] =
     Lens(_.game.levelType, (m, sm) => m.copy(game = m.game.copy(levelType = sm)))
 
-  def viewModelLens: Lens[ViewModel, ViewModel] =
-    Lens.keepLatest
+  def viewModelLens: Lens[ViewModel, ViewInfo] =
+    ViewInfo.lens
 
   def eventFilters: EventFilters =
     EventFilters.Default
@@ -44,13 +44,13 @@ object LevelSelect extends Scene[StartUpData, Model, ViewModel] {
       Outcome(model)
   }
 
-  def updateViewModel(context: FrameContext[StartUpData], model: LevelType, viewModel: ViewModel): GlobalEvent => Outcome[ViewModel] =
-    Moonshot.fullScreenToggleProcessing(viewModel).orElse {
+  def updateViewModel(context: FrameContext[StartUpData], model: LevelType, viewModel: ViewInfo): GlobalEvent => Outcome[ViewInfo] =
+    ViewInfo.fullScreenToggleProcessing(viewModel).orElse {
       case _ =>
         Outcome(viewModel)
     }
 
-  def present(context: FrameContext[StartUpData], model: LevelType, viewModel: ViewModel): SceneUpdateFragment =
+  def present(context: FrameContext[StartUpData], model: LevelType, viewModel: ViewInfo): SceneUpdateFragment =
     SceneUpdateFragment(
       Text("Choose a level type:", 10, 10, 0, Assets.Font.fontKey),
       Text(model.renderLander, 10, 30, 0, Assets.Font.fontKey),

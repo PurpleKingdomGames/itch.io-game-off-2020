@@ -15,9 +15,7 @@ import com.moonshot.scenes.loading.Loading
 import com.moonshot.viewmodel.ViewModel
 import indigoextras.geometry.BoundingBox
 import com.moonshot.scenes.FullScreen
-import indigo.shared.events.GlobalEvent
-import indigo.shared.events.FullScreenEntered
-import indigo.shared.events.FullScreenExited
+import com.moonshot.viewmodel.ViewInfo
 
 @JSExportTopLevel("IndigoGame")
 object Moonshot extends IndigoGame[BootData, StartUpData, Model, ViewModel] {
@@ -38,7 +36,7 @@ object Moonshot extends IndigoGame[BootData, StartUpData, Model, ViewModel] {
       }
 
     val magnification: Int =
-      pickMagnification(gameViewport)
+      ViewInfo.pickMagnification(gameViewport)
 
     BootResult(
       GameConfig.default
@@ -87,35 +85,6 @@ object Moonshot extends IndigoGame[BootData, StartUpData, Model, ViewModel] {
 
   def initialViewModel(startupData: StartUpData, model: Model): ViewModel =
     ViewModel.initial(startupData.magnificaiton, startupData.gameViewport)
-
-  def pickMagnification(gameViewport: GameViewport): Int =
-    if (gameViewport.height >= GameViewport.at1080p.height) 3
-    else if (gameViewport.height >= GameViewport.at720p.height) 2
-    else 1
-
-  def fullScreenToggleProcessing(viewModel: ViewModel): PartialFunction[GlobalEvent, Outcome[ViewModel]] = {
-    case ViewportResize(gameViewport) =>
-      Outcome(
-        viewModel.copy(
-          magnification = Moonshot.pickMagnification(gameViewport),
-          gameViewport = gameViewport
-        )
-      )
-
-    case FullScreenEntered =>
-      Outcome(
-        viewModel.copy(
-          magnification = Moonshot.pickMagnification(viewModel.gameViewport)
-        )
-      )
-
-    case FullScreenExited =>
-      Outcome(
-        viewModel.copy(
-          magnification = Moonshot.pickMagnification(viewModel.gameViewport)
-        )
-      )
-  }
 
 }
 
