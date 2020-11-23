@@ -93,7 +93,7 @@ final case class Game(
                 && a.coords.y > screenBounds.y - a.boundingBox.height
                 && a.coords.y < screenBounds.y + screenBounds.height
             ),
-          verticalOffset = verticalOffset + verticalDelta,
+          verticalOffset = Math.max(targetVerticalOffset, verticalOffset + verticalDelta),
           timeRemainingInSeconds = Seconds(Math.max(0, (timeRemainingInSeconds - gameTime.delta).toDouble))
         )
         .spawnAsteroid(gameTime, dice, screenBounds)
