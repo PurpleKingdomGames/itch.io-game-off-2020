@@ -78,7 +78,7 @@ final case class Game(
       )
 
   def updateRunningGame(gameTime: GameTime, dice: Dice, shipControl: ShipControl, screenBounds: BoundingBox) = {
-    val verticalDelta = verticalSpeed * 1 * gameTime.delta.value
+    val verticalDelta = (-Math.max(-2, Math.min(0, ship.force.y)) * verticalSpeed) * gameTime.delta.value
 
     Outcome(
       this
