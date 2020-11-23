@@ -128,8 +128,7 @@ object Level extends Scene[StartUpData, Model, ViewModel] {
       )
       .addUiLayerNodes(
         List(
-          Text("Lives: " + model.ship.lives.toString(), 10, 10, 0, Assets.Font.fontKey),
-          Text("Health: " + model.ship.health.toString(), 10, 30, 0, Assets.Font.fontKey),
+          Text("Health: " + model.ship.health.toString(), 10, 10, 0, Assets.Font.fontKey),
           Text(model.presentTime, context.startUpData.screenBounds.toRectangle.right - 10, 10, 0, Assets.Font.fontKey).alignRight,
           openingText,
           Text(
