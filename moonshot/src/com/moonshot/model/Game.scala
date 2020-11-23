@@ -121,7 +121,7 @@ final case class Game(
 }
 
 object Game {
-  val maxTimeLimit: Seconds     = Seconds(600) // 10 Minutes
+  val maxTimeLimit: Seconds     = Seconds(300) // 5 Minutes
   val initVerticalSpeed: Double = 40
 
   def initial(screenBounds: BoundingBox): Game =
