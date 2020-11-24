@@ -16,6 +16,7 @@ import com.moonshot.viewmodel.ViewModel
 import indigoextras.geometry.BoundingBox
 import com.moonshot.scenes.FullScreen
 import com.moonshot.viewmodel.ViewInfo
+import indigoextras.subsystems.FPSCounter
 
 @JSExportTopLevel("IndigoGame")
 object Moonshot extends IndigoGame[BootData, StartUpData, Model, ViewModel] {
@@ -38,16 +39,19 @@ object Moonshot extends IndigoGame[BootData, StartUpData, Model, ViewModel] {
     val magnification: Int =
       ViewInfo.pickMagnification(gameViewport)
 
+    val targetFPS = 60
+
     BootResult(
       GameConfig.default
         .withViewport(gameViewport)
         .withClearColor(ClearColor.fromHexString("000D93"))
         .withMagnification(magnification)
-        .withFrameRate(60),
+        .withFrameRate(targetFPS),
       BootData(assetPath, gameViewport.giveDimensions(magnification), magnification, gameViewport)
     )
       .withAssets(Assets.loadingAssets(assetPath))
       .withFonts(Assets.Font.fontInfo)
+      .withSubSystems(FPSCounter(Assets.Font.fontKey, Point(150, 10), targetFPS))
   }
 
   def scenes(bootData: BootData): NonEmptyList[Scene[StartUpData, Model, ViewModel]] =
