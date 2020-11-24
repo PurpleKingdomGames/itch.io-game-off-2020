@@ -5,8 +5,6 @@ import indigo.shared.config.GameViewport
 import indigo.shared.events.ViewportResize
 import indigo.shared.Outcome
 import indigo.shared.events.GlobalEvent
-import indigo.shared.events.FullScreenExited
-import indigo.shared.events.FullScreenEntered
 import indigo.scenes.Lens
 
 final case class ViewModel(level: LevelViewModel, viewInfo: ViewInfo, customisation: CustomisationViewModel)
@@ -39,12 +37,20 @@ object ViewInfo {
     )
 
   def pickMagnification(gameViewport: GameViewport): Int =
-    if (gameViewport.height >= GameViewport.at1080p.height) 3
-    else if (gameViewport.height >= GameViewport.at720p.height) 2
-    else 1
+    gameViewport.height match {
+      case 1440 => 3
+      case 1080 => 3
+      case 1024 => 3
+      case 900  => 3
+      case 864  => 3
+      case 800  => 3
+      case 768  => 2
+      case 720  => 2
+      case _    => 1
+    }
 
   def fullScreenToggleViewModel(viewModel: ViewModel): PartialFunction[GlobalEvent, Outcome[ViewModel]] = {
-    case e @ (FullScreenEntered | FullScreenExited | ViewportResize(_)) =>
+    case e @ (ViewportResize(_)) =>
       fullScreenToggleProcessing(viewModel.viewInfo)(e).map(vi => viewModel.copy(viewInfo = vi))
   }
 
@@ -54,20 +60,6 @@ object ViewInfo {
         viewInfo.copy(
           magnification = pickMagnification(gameViewport),
           gameViewport = gameViewport
-        )
-      )
-
-    case FullScreenEntered =>
-      Outcome(
-        viewInfo.copy(
-          magnification = pickMagnification(viewInfo.gameViewport)
-        )
-      )
-
-    case FullScreenExited =>
-      Outcome(
-        viewInfo.copy(
-          magnification = pickMagnification(viewInfo.gameViewport)
         )
       )
   }
