@@ -18,9 +18,9 @@ final case class Game(
 ) {
   val maxAsteroids: Int                  = 20
   val initMinAsteroidSpawnRate: Double   = 1
-  val initMaxAsteroidSpawnRate: Double   = 3
-  val targetMinAsteroidSpawnRate: Double = 0.25
-  val targetMaxAsteroidSpawnRate: Double = 0.5
+  val initMaxAsteroidSpawnRate: Double   = 0.5
+  val targetMinAsteroidSpawnRate: Double = 0.1
+  val targetMaxAsteroidSpawnRate: Double = 0.25
   val targetVerticalOffset: Double       = Game.maxTimeLimit.toDouble * 2 * Game.initialSpeed
 
   def withState(gameState: GameState) =
@@ -112,7 +112,6 @@ final case class Game(
             .filter(a =>
               a.coords.x > screenBounds.x - a.boundingBox.width
                 && a.coords.x < screenBounds.x + screenBounds.width
-                && a.coords.y > screenBounds.y - a.boundingBox.height
                 && a.coords.y < screenBounds.y + screenBounds.height
             ),
           verticalOffset = Math.min(targetVerticalOffset, verticalOffset + verticalDelta),
