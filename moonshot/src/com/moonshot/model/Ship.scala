@@ -102,7 +102,7 @@ final case class Ship(health: Int, lives: Int, force: Vector2, coords: Vector2, 
     asteroids.foldLeft(this) { (s, a) =>
       if (gameTime.running - lastImpact > Ship.invulnerableFor && a.overlaps(s.boundingBox) && checkShipCollisionAgainstCircle(s.boundingBox, a))
         s.copy(
-          health = s.health - 1,
+          health = Math.max(0, s.health - 1),
           lastImpact = gameTime.running,
           force = Vector2(-force.x * 1.5, -force.y * 1.5)
         )
