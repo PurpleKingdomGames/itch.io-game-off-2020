@@ -11,14 +11,17 @@ final case class Game(
     ship: Ship,
     timeRemainingInSeconds: Seconds,
     asteroids: List[Asteroid],
-    verticalSpeed: Double,
+    initialSpeed: Double,
+    targetVerticalSpeed: Double,
     verticalOffset: Double,
     nextAsteroidSpawn: Double
 ) {
-  val maxAsteroids: Int            = 20
-  val minAsteroidSpawnRate: Double = 1
-  val maxAsteroidSpawnRate: Double = 3
-  val targetVerticalOffset: Double = (Game.maxTimeLimit.toDouble * 0.5) * verticalSpeed
+  val maxAsteroids: Int                  = 20
+  val initMinAsteroidSpawnRate: Double   = 1
+  val initMaxAsteroidSpawnRate: Double   = 3
+  val targetMinAsteroidSpawnRate: Double = 0.25
+  val targetMaxAsteroidSpawnRate: Double = 0.5
+  val targetVerticalOffset: Double       = Game.maxTimeLimit.toDouble * 2 * Game.initialSpeed
 
   def withState(gameState: GameState) =
     this.copy(gameState = gameState)
@@ -26,7 +29,12 @@ final case class Game(
   def update(gameTime: GameTime, dice: Dice, shipControl: ShipControl, screenBounds: BoundingBox): GlobalEvent => Outcome[Game] = {
     case FrameTick =>
       if (gameState == GameState.GameRunning)
-        updateRunningGame(gameTime, dice, shipControl, screenBounds)
+        if (verticalOffset >= targetVerticalOffset)
+          Outcome(this.copy(gameState = GameState.GameWin))
+        else if (timeRemainingInSeconds.toDouble <= 0)
+          Outcome(this.copy(gameState = GameState.GameLoss))
+        else
+          updateRunningGame(gameTime, dice, shipControl, screenBounds)
       else if (gameState == GameState.ShipCustomisation)
         updateCustomisationScreen(gameTime, screenBounds)
       else
@@ -34,15 +42,9 @@ final case class Game(
 
     case KeyUp(Key.ESCAPE) =>
       Outcome(
-        if (gameState == GameState.GameRunning && ship.lastDeath == Seconds.zero) {
-          val game = this.copy(gameState = GameState.GamePaused)
-          if (game.verticalOffset >= targetVerticalOffset)
-            game.copy(gameState = GameState.GameWin)
-          else if (game.timeRemainingInSeconds.toDouble <= 0)
-            game.copy(gameState = GameState.GameLoss)
-          else
-            game
-        } else if (gameState == GameState.GamePaused)
+        if (gameState == GameState.GameRunning && ship.lastDeath == Seconds.zero)
+          this.copy(gameState = GameState.GamePaused)
+        else if (gameState == GameState.GamePaused)
           this.copy(gameState = GameState.GameRunning)
         else
           this
@@ -58,7 +60,7 @@ final case class Game(
         ship = ship.copy(health = ship.health + upgrade.healthBoost),
         timeRemainingInSeconds =
           timeRemainingInSeconds - upgrade.cost,
-        verticalSpeed = verticalSpeed + upgrade.speedBoost
+        initialSpeed = initialSpeed + upgrade.speedBoost
       )
     else
       this
@@ -66,7 +68,17 @@ final case class Game(
   def spawnAsteroid(gameTime: GameTime, dice: Dice, screenBounds: BoundingBox) =
     if (gameTime.running.value < nextAsteroidSpawn || asteroids.length >= maxAsteroids)
       this
-    else
+    else {
+      val percentThroughLevel = verticalOffset / targetVerticalOffset
+      val minAsteroidSpawnRate =
+        initMinAsteroidSpawnRate - (
+          (targetMinAsteroidSpawnRate - initMinAsteroidSpawnRate) * percentThroughLevel
+        )
+      val maxAsteroidSpawnRate =
+        initMaxAsteroidSpawnRate - (
+          (targetMaxAsteroidSpawnRate - initMaxAsteroidSpawnRate) * percentThroughLevel
+        )
+
       this.copy(
         asteroids =
           Asteroid.initial
@@ -76,9 +88,11 @@ final case class Game(
             :: asteroids,
         nextAsteroidSpawn = gameTime.running.value + (dice.rollDouble * (maxAsteroidSpawnRate - minAsteroidSpawnRate) + minAsteroidSpawnRate)
       )
+    }
 
   def updateRunningGame(gameTime: GameTime, dice: Dice, shipControl: ShipControl, screenBounds: BoundingBox) = {
-    val verticalDelta = (-Math.max(-3, Math.min(-1, ship.force.y)) * verticalSpeed) * gameTime.delta.value
+    val verticalSpeed = Math.max(initialSpeed, targetVerticalSpeed * (verticalOffset / targetVerticalOffset))
+    val verticalDelta = -(Math.max(-3, Math.min(-1, ship.force.y)) * verticalSpeed) * gameTime.delta.value
 
     Outcome(
       this
@@ -93,7 +107,7 @@ final case class Game(
                 && a.coords.y > screenBounds.y - a.boundingBox.height
                 && a.coords.y < screenBounds.y + screenBounds.height
             ),
-          verticalOffset = Math.max(targetVerticalOffset, verticalOffset + verticalDelta),
+          verticalOffset = Math.min(targetVerticalOffset, verticalOffset + verticalDelta),
           timeRemainingInSeconds = Seconds(Math.max(0, (timeRemainingInSeconds - gameTime.delta).toDouble))
         )
         .spawnAsteroid(gameTime, dice, screenBounds)
@@ -121,11 +135,12 @@ final case class Game(
 }
 
 object Game {
-  val maxTimeLimit: Seconds     = Seconds(300) // 5 Minutes
-  val initVerticalSpeed: Double = 40
+  val maxTimeLimit: Seconds       = Seconds(300) // 5 Minutes
+  val targetVerticalSpeed: Double = 400
+  val initialSpeed: Double        = 40
 
   def initial(screenBounds: BoundingBox): Game =
-    Game(LevelType.Lander, GameState.GameRunning, Ship.initial(screenBounds), maxTimeLimit, Nil, initVerticalSpeed, 0, 0)
+    Game(LevelType.Lander, GameState.GameRunning, Ship.initial(screenBounds), maxTimeLimit, Nil, initialSpeed, targetVerticalSpeed, 0, 0)
 }
 
 sealed trait GameState
