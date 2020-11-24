@@ -12,9 +12,9 @@ import com.moonshot.model.ShipControl.ThrustRight
 
 final case class Ship(health: Int, lives: Int, force: Vector2, coords: Vector2, angle: Radians, lastImpact: Seconds, lastDeath: Seconds) {
   val boundingBox: BoundingBox =
-    new BoundingBox(new Vertex(coords.x - 16, coords.y - 24), new Vertex(32, 56));
+    new BoundingBox(new Vertex(coords.x - 16, coords.y - 24), new Vertex(32, 56))
 
-  def update(gameTime: GameTime, asteroids: List[BoundingBox], shipControl: ShipControl, screenBounds: BoundingBox) =
+  def update(gameTime: GameTime, asteroids: List[BoundingBox], shipControl: ShipControl, screenBounds: BoundingBox): Ship =
     if (health < 1)
       this
         .updateMove(gameTime, ShipControl.TurnRight)
@@ -30,14 +30,14 @@ final case class Ship(health: Int, lives: Int, force: Vector2, coords: Vector2, 
         newShip
     }
 
-  def moveBy(x: Double, y: Double) =
+  def moveBy(x: Double, y: Double): Ship =
     this.copy(coords = this.coords + Vector2(x, y))
 
-  def clampTo(clampBox: BoundingBox) =
+  def clampTo(clampBox: BoundingBox): Ship =
     this.copy(coords =
       Vector2(
-        Math.max(clampBox.x, Math.min(clampBox.x + clampBox.width - boundingBox.width, coords.x)),
-        Math.max(clampBox.y, Math.min(clampBox.y + clampBox.height - boundingBox.height, coords.y))
+        Math.max(clampBox.x, Math.min(clampBox.right - boundingBox.width, coords.x)),
+        Math.max(clampBox.y, Math.min(clampBox.bottom - boundingBox.height, coords.y))
       )
     )
 
@@ -110,7 +110,7 @@ final case class Ship(health: Int, lives: Int, force: Vector2, coords: Vector2, 
         s
     }
 
-  def checkShipCollisionAgainstCircle(shipBox: BoundingBox, circleBox: BoundingBox) = {
+  def checkShipCollisionAgainstCircle(shipBox: BoundingBox, circleBox: BoundingBox): Boolean = {
     val center     = circleBox.center
     val halfShip   = shipBox.halfSize
     val shipCenter = shipBox.center
@@ -131,8 +131,16 @@ object Ship {
   val invulnerableFor: Seconds =
     Seconds(1.5)
 
-  def initial(screenBounds: BoundingBox): Ship =
-    Ship(3, 3, Vector2.zero, screenBounds.center.toVector2 + Vector2(0, 32), Radians.zero, Seconds.zero, Seconds.zero)
+  def initial(screenBounds: Rectangle): Ship =
+    Ship(
+      3,
+      3,
+      Vector2.zero,
+      Vector2(screenBounds.center.x.toDouble, screenBounds.center.y.toDouble) + Vector2(0, 32),
+      Radians.zero,
+      Seconds.zero,
+      Seconds.zero
+    )
 
   val inputMappings: InputMapping[ShipControl] =
     InputMapping(

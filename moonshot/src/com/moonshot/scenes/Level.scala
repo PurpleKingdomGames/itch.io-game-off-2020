@@ -9,6 +9,8 @@ import com.moonshot.model.Fumes
 import com.moonshot.viewmodel.ViewModel
 import com.moonshot.model.{Ship, ShipControl}
 import com.moonshot.viewmodel.ViewInfo
+import indigo.shared.EqualTo._
+import com.moonshot.viewmodel.ScreenBoundsUpdated
 
 object Level extends Scene[StartUpData, Model, ViewModel] {
 
@@ -35,7 +37,7 @@ object Level extends Scene[StartUpData, Model, ViewModel] {
 
   def updateModel(context: FrameContext[StartUpData], model: Game): GlobalEvent => Outcome[Game] = {
     case ResetLevel =>
-      Outcome(Game.initial(context.startUpData.screenBounds))
+      Outcome(Game.initial(model.screenBounds))
 
     case FrameTick if goToCustomisation(model.ship, context.running) =>
       Outcome(
@@ -44,7 +46,10 @@ object Level extends Scene[StartUpData, Model, ViewModel] {
       )
 
     case e =>
-      model.update(context.gameTime /*, context.dice*/, context.inputState.mapInputs(Ship.inputMappings, ShipControl.Idle), context.startUpData.screenBounds)(e)
+      model.update(
+        context.gameTime /*, context.dice*/,
+        context.inputState.mapInputs(Ship.inputMappings, ShipControl.Idle)
+      )(e)
   }
 
   def updateViewModel(context: FrameContext[StartUpData], model: Game, viewModel: ViewModel): GlobalEvent => Outcome[ViewModel] =
@@ -69,6 +74,9 @@ object Level extends Scene[StartUpData, Model, ViewModel] {
           ),
           fumeEvents
         )
+
+      case FrameTick if model.screenBounds !== viewModel.viewInfo.giveScreenBounds =>
+        Outcome(viewModel, List(ScreenBoundsUpdated(viewModel.viewInfo.giveScreenBounds)))
 
       case _ =>
         Outcome(viewModel)

@@ -4,6 +4,7 @@ import indigo._
 import indigo.shared.events.KeyboardEvent.KeyUp
 import indigo.shared.time.GameTime
 import indigoextras.geometry.BoundingBox
+import com.moonshot.viewmodel.ScreenBoundsUpdated
 
 final case class Game(
     levelType: LevelType,
@@ -15,7 +16,8 @@ final case class Game(
     targetVerticalSpeed: Double,
     verticalOffset: Double,
     nextAsteroidSpawn: Double,
-    targetVerticalOffset: Double
+    targetVerticalOffset: Double,
+    screenBounds: Rectangle
 ) {
   val maxAsteroids: Int                  = 20
   val initMinAsteroidSpawnRate: Double   = 1
@@ -23,13 +25,10 @@ final case class Game(
   val targetMinAsteroidSpawnRate: Double = 0.1
   val targetMaxAsteroidSpawnRate: Double = 0.25
 
-  def percentComplete: Double =
-    Math.floor((100 * (verticalOffset / targetVerticalOffset)) * 100) / 100
+  def update(gameTime: GameTime /*, dice: Dice*/, shipControl: ShipControl): GlobalEvent => Outcome[Game] = {
+    case ScreenBoundsUpdated(newScreenBounds) =>
+      Outcome(this.copy(screenBounds = newScreenBounds))
 
-  def withState(gameState: GameState) =
-    this.copy(gameState = gameState)
-
-  def update(gameTime: GameTime /*, dice: Dice*/, shipControl: ShipControl, screenBounds: BoundingBox): GlobalEvent => Outcome[Game] = {
     case FrameTick =>
       gameState match {
         case GameState.GameRunning if verticalOffset >= targetVerticalOffset =>
@@ -39,10 +38,7 @@ final case class Game(
           Outcome(this.copy(gameState = GameState.GameLoss))
 
         case GameState.GameRunning =>
-          updateRunningGame(gameTime /*, dice*/, shipControl, screenBounds)
-
-        case GameState.ShipCustomisation =>
-          updateCustomisationScreen(gameTime, screenBounds)
+          updateRunningGame(gameTime /*, dice*/, shipControl)
 
         case _ =>
           Outcome(this)
@@ -109,7 +105,7 @@ final case class Game(
   //     )
   //   }
 
-  def updateRunningGame(gameTime: GameTime /*, dice: Dice*/, shipControl: ShipControl, screenBounds: BoundingBox) = {
+  def updateRunningGame(gameTime: GameTime /*, dice: Dice*/, shipControl: ShipControl) = {
     val verticalSpeed = Math.max(initialSpeed, targetVerticalSpeed * (verticalOffset / targetVerticalOffset))
     val verticalDelta = -(Math.max(-3, Math.min(-1, ship.force.y)) * verticalSpeed) * gameTime.delta.value
 
@@ -117,7 +113,17 @@ final case class Game(
       this
         .copy(
           ship = ship
-            .update(gameTime, asteroids.map(_.getBoundingBox), shipControl, screenBounds),
+            .update(
+              gameTime,
+              asteroids.map(_.getBoundingBox),
+              shipControl,
+              BoundingBox(
+                screenBounds.x.toDouble,
+                screenBounds.y.toDouble,
+                screenBounds.width.toDouble,
+                screenBounds.height.toDouble
+              )
+            ),
           asteroids = asteroids
             .map(_.moveBy(0, verticalDelta))
             .filter(a =>
@@ -132,13 +138,6 @@ final case class Game(
     )
   }
 
-  def updateCustomisationScreen(gameTime: GameTime, screenBounds: BoundingBox) =
-    Outcome(
-      this.copy(
-        ship = ship.update(gameTime, Nil, ShipControl.Idle, screenBounds)
-      )
-    )
-
   def presentTime: String = {
     val intSeconds            = timeRemainingInSeconds.toInt
     val minutes               = intSeconds / 60
@@ -148,6 +147,9 @@ final case class Game(
 
     minutesToShow + ":" + secondsToShow
   }
+
+  def percentComplete: Double =
+    Math.floor((100 * (verticalOffset / targetVerticalOffset)) * 100) / 100
 }
 
 object Game {
@@ -155,7 +157,7 @@ object Game {
   val targetVerticalSpeed: Double = 400
   val initialSpeed: Double        = 40
 
-  def initial(screenBounds: BoundingBox): Game =
+  def initial(screenBounds: Rectangle): Game =
     Game(
       LevelType.Lander,
       GameState.GameRunning,
@@ -166,16 +168,15 @@ object Game {
       targetVerticalSpeed,
       0,
       0,
-      Game.maxTimeLimit.toDouble * 2 * Game.initialSpeed
+      Game.maxTimeLimit.toDouble * 2 * Game.initialSpeed,
+      screenBounds
     )
 }
 
 sealed trait GameState
 object GameState {
-  case object SplashScreen      extends GameState
-  case object ShipCustomisation extends GameState
-  case object GameWin           extends GameState
-  case object GameLoss          extends GameState
-  case object GameRunning       extends GameState
-  case object GamePaused        extends GameState
+  case object GameWin     extends GameState
+  case object GameLoss    extends GameState
+  case object GameRunning extends GameState
+  case object GamePaused  extends GameState
 }

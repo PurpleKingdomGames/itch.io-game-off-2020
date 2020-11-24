@@ -6,6 +6,7 @@ import indigo.shared.events.ViewportResize
 import indigo.shared.Outcome
 import indigo.shared.events.GlobalEvent
 import indigo.scenes.Lens
+import indigo.shared.datatypes.Rectangle
 
 final case class ViewModel(level: LevelViewModel, viewInfo: ViewInfo, customisation: CustomisationViewModel)
 object ViewModel {
@@ -25,7 +26,10 @@ object LevelViewModel {
     LevelViewModel(Seconds.zero, Seconds.zero)
 }
 
-final case class ViewInfo(magnification: Int, gameViewport: GameViewport)
+final case class ViewInfo(magnification: Int, gameViewport: GameViewport) {
+  def giveScreenBounds: Rectangle =
+    gameViewport.giveDimensions(magnification)
+}
 object ViewInfo {
   def initial(magnification: Int, gameViewport: GameViewport): ViewInfo =
     ViewInfo(magnification, gameViewport)
@@ -56,13 +60,18 @@ object ViewInfo {
 
   def fullScreenToggleProcessing(viewInfo: ViewInfo): PartialFunction[GlobalEvent, Outcome[ViewInfo]] = {
     case ViewportResize(gameViewport) =>
+      val nextMagnification = pickMagnification(gameViewport)
+
       Outcome(
         viewInfo.copy(
-          magnification = pickMagnification(gameViewport),
+          magnification = nextMagnification,
           gameViewport = gameViewport
-        )
+        ),
+        List(ScreenBoundsUpdated(gameViewport.giveDimensions(nextMagnification)))
       )
   }
 }
 
 final case class CustomisationViewModel(screenEnteredAt: Seconds)
+
+final case class ScreenBoundsUpdated(screenBounds: Rectangle) extends GlobalEvent

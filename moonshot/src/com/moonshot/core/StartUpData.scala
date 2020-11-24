@@ -1,6 +1,9 @@
 package com.moonshot.core
 
-import indigoextras.geometry.BoundingBox
 import indigo.shared.config.GameViewport
+import indigo.shared.datatypes.Rectangle
 
-final case class StartUpData(screenBounds: BoundingBox, magnificaiton: Int, gameViewport: GameViewport)
+final case class StartUpData(magnification: Int, gameViewport: GameViewport) {
+  val initialScreenBounds: Rectangle =
+    gameViewport.giveDimensions(magnification)
+}

@@ -14,6 +14,12 @@ object LevelView {
     val running              = context.gameTime.running
     val textWaitTime: Double = 3
 
+    val screenSize: Rectangle =
+      viewModel.viewInfo.giveScreenBounds
+
+    val middle =
+      screenSize.center
+
     val shipGraphic = {
       val s = Assets.Rocket.rocket
         .moveTo(model.ship.toScreenSpace)
@@ -33,8 +39,8 @@ object LevelView {
     val openingText =
       Text(
         "5 minutes to Dinner!",
-        viewModel.viewInfo.gameViewport.horizontalMiddle / 2,
-        viewModel.viewInfo.gameViewport.verticalMiddle / 2,
+        middle.x / 2,
+        middle.y / 2,
         0,
         Assets.Font.fontKey
       ).alignCenter
@@ -48,8 +54,6 @@ object LevelView {
         )
 
     val asteroidGraphic = Assets.Placeholder.blueBox
-    val middle =
-      context.startUpData.screenBounds.center.toPoint
 
     val endText =
       model.gameState match {
@@ -89,14 +93,15 @@ object LevelView {
       .addUiLayerNodes(
         List(
           Text("Health: " + model.ship.health.toString(), 10, 10, 0, Assets.Font.fontKey),
-          Text(model.presentTime, context.startUpData.screenBounds.toRectangle.right - 10, 10, 0, Assets.Font.fontKey).alignRight,
+          Text(model.presentTime, screenSize.right - 10, 10, 0, Assets.Font.fontKey).alignRight,
           Text(
             model.percentComplete.toString + " / 100",
-            context.startUpData.screenBounds.toRectangle.right - 10,
+            screenSize.right - 10,
             30,
             0,
             Assets.Font.fontKey
           ).alignRight,
+          Text(screenSize.width.toString() + " x " + screenSize.height.toString, screenSize.right - 10, 50, 0, Assets.Font.fontKey).alignRight,
           openingText,
           Text("Paused", 0, 0, 0, Assets.Font.fontKey)
             .moveTo(middle)

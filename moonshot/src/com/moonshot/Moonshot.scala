@@ -13,7 +13,6 @@ import com.moonshot.scenes.LevelSelect
 import com.moonshot.scenes.Customisation
 import com.moonshot.scenes.loading.Loading
 import com.moonshot.viewmodel.ViewModel
-import indigoextras.geometry.BoundingBox
 import com.moonshot.scenes.FullScreen
 import com.moonshot.viewmodel.ViewInfo
 import indigoextras.subsystems.FPSCounter
@@ -73,22 +72,16 @@ object Moonshot extends IndigoGame[BootData, StartUpData, Model, ViewModel] {
   ): Startup[StartUpData] =
     Startup.Success(
       StartUpData(
-        BoundingBox(
-          bootData.viewport.x.toDouble,
-          bootData.viewport.y.toDouble,
-          bootData.viewport.width.toDouble,
-          bootData.viewport.height.toDouble
-        ),
         bootData.startingMagnification,
         bootData.gameViewport
       )
     )
 
   def initialModel(startupData: StartUpData): Model =
-    Model.initial(startupData.screenBounds)
+    Model.initial(startupData.initialScreenBounds)
 
   def initialViewModel(startupData: StartUpData, model: Model): ViewModel =
-    ViewModel.initial(startupData.magnificaiton, startupData.gameViewport)
+    ViewModel.initial(startupData.magnification, startupData.gameViewport)
 
 }
 

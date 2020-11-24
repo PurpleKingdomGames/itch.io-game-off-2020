@@ -78,7 +78,7 @@ object Customisation extends Scene[StartUpData, Model, ViewModel] {
 
   def present(context: FrameContext[StartUpData], model: Game, viewModel: WorkingViewModel): SceneUpdateFragment = {
     val middle =
-      context.startUpData.screenBounds.center.toPoint
+      viewModel.viewInfo.giveScreenBounds.center
 
     val timeSinceEntered =
       context.running - viewModel.customisation.screenEnteredAt

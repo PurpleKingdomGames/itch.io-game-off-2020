@@ -1,8 +1,8 @@
 package com.moonshot.model
 
-import indigoextras.geometry.BoundingBox
 import com.moonshot.scenes.loading.LoadingModel
 import com.moonshot.scenes.WindowMode
+import indigo.shared.datatypes.Rectangle
 
 final case class Model(
     loadingScene: LoadingModel,
@@ -12,7 +12,7 @@ final case class Model(
 
 object Model {
 
-  def initial(screenBounds: BoundingBox): Model =
+  def initial(screenBounds: Rectangle): Model =
     Model(
       LoadingModel.initial,
       WindowMode.WindowedMode,
