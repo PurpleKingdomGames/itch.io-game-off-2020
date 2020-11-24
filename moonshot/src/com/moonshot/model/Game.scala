@@ -14,14 +14,14 @@ final case class Game(
     initialSpeed: Double,
     targetVerticalSpeed: Double,
     verticalOffset: Double,
-    nextAsteroidSpawn: Double
+    nextAsteroidSpawn: Double,
+    targetVerticalOffset: Double
 ) {
   val maxAsteroids: Int                  = 20
   val initMinAsteroidSpawnRate: Double   = 1
   val initMaxAsteroidSpawnRate: Double   = 0.5
   val targetMinAsteroidSpawnRate: Double = 0.1
   val targetMaxAsteroidSpawnRate: Double = 0.25
-  val targetVerticalOffset: Double       = Game.maxTimeLimit.toDouble * 2 * Game.initialSpeed
 
   def percentComplete: Double =
     Math.floor((100 * (verticalOffset / targetVerticalOffset)) * 100) / 100
@@ -156,7 +156,18 @@ object Game {
   val initialSpeed: Double        = 40
 
   def initial(screenBounds: BoundingBox): Game =
-    Game(LevelType.Lander, GameState.GameRunning, Ship.initial(screenBounds), maxTimeLimit, Nil, initialSpeed, targetVerticalSpeed, 0, 0)
+    Game(
+      LevelType.Lander,
+      GameState.GameRunning,
+      Ship.initial(screenBounds),
+      maxTimeLimit,
+      Nil,
+      initialSpeed,
+      targetVerticalSpeed,
+      0,
+      0,
+      Game.maxTimeLimit.toDouble * 2 * Game.initialSpeed
+    )
 }
 
 sealed trait GameState

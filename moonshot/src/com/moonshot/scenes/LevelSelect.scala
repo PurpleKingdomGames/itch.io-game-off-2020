@@ -8,6 +8,9 @@ import com.moonshot.viewmodel.ViewModel
 import com.moonshot.core.Assets
 import com.moonshot.model.LevelType
 import com.moonshot.viewmodel.ViewInfo
+import com.moonshot.model.LevelType.Lander
+import com.moonshot.model.LevelType.Slalom
+import com.moonshot.model.LevelType.Gauntlet
 
 object LevelSelect extends Scene[StartUpData, Model, ViewModel] {
 
@@ -37,8 +40,18 @@ object LevelSelect extends Scene[StartUpData, Model, ViewModel] {
       Outcome(model.down)
 
     case KeyboardEvent.KeyUp(Key.ENTER) =>
-      Outcome(model)
-        .addGlobalEvents(SceneEvent.JumpTo(Level.name))
+      model match {
+        case Lander =>
+          Outcome(model)
+            .addGlobalEvents(SceneEvent.JumpTo(Level.name))
+
+        case Slalom =>
+          Outcome(model)
+            .addGlobalEvents(SceneEvent.JumpTo(Level.name))
+
+        case Gauntlet =>
+          Outcome(model)
+      }
 
     case _ =>
       Outcome(model)
@@ -55,7 +68,7 @@ object LevelSelect extends Scene[StartUpData, Model, ViewModel] {
       Text("Choose a level type:", 10, 10, 0, Assets.Font.fontKey),
       Text(model.renderLander, 10, 30, 0, Assets.Font.fontKey),
       Text(model.renderSlalom, 10, 50, 0, Assets.Font.fontKey),
-      Text(model.renderGauntlet, 10, 70, 0, Assets.Font.fontKey),
+      Text(model.renderGauntlet, 10, 70, 0, Assets.Font.fontKey).withAlpha(0.5),
       Text("Hit enter to continue", 10, 90, 0, Assets.Font.fontKey)
     ).withMagnification(viewModel.magnification)
 
