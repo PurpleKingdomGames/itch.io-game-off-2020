@@ -12,6 +12,7 @@ import com.moonshot.model.{Ship, ShipControl}
 import com.moonshot.viewmodel.ViewInfo
 import indigo.shared.datatypes.TextAlignment
 import com.moonshot.model.GameState
+import com.moonshot.scenes.Customisation.AnimationSignals
 
 object Level extends Scene[StartUpData, Model, ViewModel] {
 
@@ -118,6 +119,36 @@ object Level extends Scene[StartUpData, Model, ViewModel] {
         )
 
     val asteroidGraphic = Assets.Placeholder.blueBox
+    val middle =
+      context.startUpData.screenBounds.center.toPoint
+
+    val endText =
+      model.gameState match {
+        case GameState.GameWin =>
+          List(
+            Text("You won!", 0, 0, 0, Assets.Font.fontKey)
+              .moveTo(middle)
+              .withAlignment(TextAlignment.Center),
+            Text("Hit enter to try again!", 0, 0, 0, Assets.Font.fontKey)
+              .moveTo(middle)
+              .moveBy(0, 32)
+              .alignCenter
+              .withAlpha(AnimationSignals.textFlash(Seconds(1)).at(context.running))
+          )
+        case GameState.GameLoss =>
+          List(
+            Text("Dinner time! You lost!", 0, 0, 0, Assets.Font.fontKey)
+              .moveTo(middle)
+              .withAlignment(TextAlignment.Center),
+            Text("Hit enter to try again!", 0, 0, 0, Assets.Font.fontKey)
+              .moveTo(middle)
+              .moveBy(0, 32)
+              .alignCenter
+              .withAlpha(AnimationSignals.textFlash(Seconds(1)).at(context.running))
+          )
+        case _ =>
+          Nil
+      }
 
     SceneUpdateFragment(shipGraphic)
       .addGameLayerNodes(
@@ -131,13 +162,8 @@ object Level extends Scene[StartUpData, Model, ViewModel] {
           Text("Health: " + model.ship.health.toString(), 10, 10, 0, Assets.Font.fontKey),
           Text(model.presentTime, context.startUpData.screenBounds.toRectangle.right - 10, 10, 0, Assets.Font.fontKey).alignRight,
           openingText,
-          Text(
-            "Paused",
-            viewModel.viewInfo.gameViewport.horizontalMiddle / 2,
-            viewModel.viewInfo.gameViewport.verticalMiddle / 2,
-            0,
-            Assets.Font.fontKey
-          )
+          Text("Paused", 0, 0, 0, Assets.Font.fontKey)
+            .moveTo(middle)
             .withAlignment(TextAlignment.Center)
             .withAlpha(
               if (model.gameState == GameState.GamePaused)
@@ -147,6 +173,7 @@ object Level extends Scene[StartUpData, Model, ViewModel] {
             )
         )
       )
+      .addUiLayerNodes(endText)
       .withGameColorOverlay(
         if (model.ship.lastDeath == Seconds.zero)
           RGBA.Zero

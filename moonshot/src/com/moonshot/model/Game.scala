@@ -50,6 +50,14 @@ final case class Game(
           this
       )
 
+    case KeyUp(Key.ENTER) =>
+      Outcome(
+        if (gameState == GameState.GameWin || gameState == GameState.GameLoss)
+          Game.initial(screenBounds)
+        else
+          this
+      )
+
     case _ =>
       Outcome(this)
   }
