@@ -5,19 +5,24 @@ import indigo.shared.events.KeyboardEvent.KeyUp
 import indigo.shared.time.GameTime
 import indigoextras.geometry.BoundingBox
 import com.moonshot.viewmodel.ScreenBoundsUpdated
+import com.moonshot.model.Course
+import com.moonshot.model.Belt
+import com.moonshot.model.Camera
 
 final case class Game(
     levelType: LevelType,
     gameState: GameState,
     ship: Ship,
     timeRemainingInSeconds: Seconds,
-    asteroids: List[Asteroid],
-    initialSpeed: Double,
-    targetVerticalSpeed: Double,
-    verticalOffset: Double,
-    nextAsteroidSpawn: Double,
-    targetVerticalOffset: Double,
-    screenBounds: Rectangle
+    // asteroids: List[Asteroid],
+    // initialSpeed: Double,
+    // targetVerticalSpeed: Double,
+    // verticalOffset: Double,
+    // nextAsteroidSpawn: Double,
+    // targetVerticalOffset: Double,
+    screenBounds: Rectangle,
+    course: Course,
+    camera: Camera
 ) {
   val maxAsteroids: Int                  = 20
   val initMinAsteroidSpawnRate: Double   = 1
@@ -31,8 +36,8 @@ final case class Game(
 
     case FrameTick =>
       gameState match {
-        case GameState.GameRunning if verticalOffset >= targetVerticalOffset =>
-          Outcome(this.copy(gameState = GameState.GameWin))
+        // case GameState.GameRunning if verticalOffset >= targetVerticalOffset =>
+        //   Outcome(this.copy(gameState = GameState.GameWin))
 
         case GameState.GameRunning if timeRemainingInSeconds.toDouble <= 0 =>
           Outcome(this.copy(gameState = GameState.GameLoss))
@@ -106,33 +111,37 @@ final case class Game(
   //   }
 
   def updateRunningGame(gameTime: GameTime /*, dice: Dice*/, shipControl: ShipControl) = {
-    val verticalSpeed = Math.max(initialSpeed, targetVerticalSpeed * (verticalOffset / targetVerticalOffset))
-    val verticalDelta = -(Math.max(-3, Math.min(-1, ship.force.y)) * verticalSpeed) * gameTime.delta.value
+    // val verticalSpeed = Math.max(initialSpeed, targetVerticalSpeed * (verticalOffset / targetVerticalOffset))
+    // val verticalDelta = -(Math.max(-3, Math.min(-1, ship.force.y)) * verticalSpeed) * gameTime.delta.value
+    val nextShip =
+      ship
+        .update(
+          gameTime,
+          Nil, //asteroids.map(_.getBoundingBox),
+          shipControl,
+          BoundingBox(
+            screenBounds.x.toDouble,
+            screenBounds.y.toDouble,
+            screenBounds.width.toDouble,
+            screenBounds.height.toDouble
+          ),
+          course.height
+        )
 
     Outcome(
       this
         .copy(
-          ship = ship
-            .update(
-              gameTime,
-              asteroids.map(_.getBoundingBox),
-              shipControl,
-              BoundingBox(
-                screenBounds.x.toDouble,
-                screenBounds.y.toDouble,
-                screenBounds.width.toDouble,
-                screenBounds.height.toDouble
-              )
-            ),
-          asteroids = asteroids
-            .map(_.moveBy(0, verticalDelta))
-            .filter(a =>
-              a.coords.x > screenBounds.x - a.boundingBox.width
-                && a.coords.x < screenBounds.x + screenBounds.width
-                && a.coords.y < screenBounds.y + screenBounds.height
-            ),
-          verticalOffset = Math.min(targetVerticalOffset, verticalOffset + verticalDelta),
-          timeRemainingInSeconds = Seconds(Math.max(0, (timeRemainingInSeconds - gameTime.delta).toDouble))
+          ship = nextShip,
+          // asteroids = asteroids
+          //   .map(_.moveBy(0, verticalDelta))
+          //   .filter(a =>
+          //     a.coords.x > screenBounds.x - a.boundingBox.width
+          //       && a.coords.x < screenBounds.x + screenBounds.width
+          //       && a.coords.y < screenBounds.y + screenBounds.height
+          //   ),
+          // verticalOffset = Math.min(targetVerticalOffset, verticalOffset + verticalDelta),
+          timeRemainingInSeconds = Seconds(Math.max(0, (timeRemainingInSeconds - gameTime.delta).toDouble)),
+          camera = camera.update(nextShip.coords.toPoint, nextShip.angle, course.height, screenBounds.height)
         )
       // .spawnAsteroid(gameTime, dice, screenBounds)
     )
@@ -149,7 +158,7 @@ final case class Game(
   }
 
   def percentComplete: Double =
-    Math.floor((100 * (verticalOffset / targetVerticalOffset)) * 100) / 100
+    0 // Math.floor((100 * (verticalOffset / targetVerticalOffset)) * 100) / 100
 }
 
 object Game {
@@ -163,13 +172,15 @@ object Game {
       GameState.GameRunning,
       Ship.initial(screenBounds),
       maxTimeLimit,
-      Nil,
-      initialSpeed,
-      targetVerticalSpeed,
-      0,
-      0,
-      Game.maxTimeLimit.toDouble * 2 * Game.initialSpeed,
-      screenBounds
+      // Nil,
+      // initialSpeed,
+      // targetVerticalSpeed,
+      // 0,
+      // 0,
+      // Game.maxTimeLimit.toDouble * 2 * Game.initialSpeed,
+      screenBounds,
+      Course(List(Belt.Backyard, Belt.Sky, Belt.EmptySpace, Belt.Moon)),
+      Camera.initial
     )
 }
 

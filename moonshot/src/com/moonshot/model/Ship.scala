@@ -12,16 +12,15 @@ import com.moonshot.model.ShipControl.ThrustRight
 
 final case class Ship(health: Int, lives: Int, force: Vector2, coords: Vector2, angle: Radians, lastImpact: Seconds, lastDeath: Seconds) {
   val boundingBox: BoundingBox =
-    new BoundingBox(new Vertex(coords.x - 16, coords.y - 24), new Vertex(32, 56))
+    new BoundingBox(new Vertex(coords.x - 32, coords.y - 32), new Vertex(64, 64))
 
-  def update(gameTime: GameTime, asteroids: List[BoundingBox], shipControl: ShipControl, screenBounds: BoundingBox): Ship =
+  def update(gameTime: GameTime, asteroids: List[BoundingBox], shipControl: ShipControl, screenBounds: BoundingBox, courseHeight: Int): Ship =
     if (health < 1)
-      this
-        .updateMove(gameTime, ShipControl.TurnRight)
+      this.updateMove(gameTime, ShipControl.TurnRight)
     else {
       val newShip = this
         .updateMove(gameTime, shipControl)
-        .clampTo(screenBounds.copy(size = screenBounds.size.copy(y = screenBounds.size.y - 32)))
+        .clampTo(screenBounds, courseHeight)
         .updateAsteroidCollisions(gameTime, asteroids)
 
       if (newShip.health <= 0)
@@ -33,11 +32,12 @@ final case class Ship(health: Int, lives: Int, force: Vector2, coords: Vector2, 
   def moveBy(x: Double, y: Double): Ship =
     this.copy(coords = this.coords + Vector2(x, y))
 
-  def clampTo(clampBox: BoundingBox): Ship =
+  def clampTo(clampBox: BoundingBox, courseHeight: Int): Ship =
     this.copy(coords =
       Vector2(
-        Math.max(clampBox.x, Math.min(clampBox.right - boundingBox.width, coords.x)),
-        Math.max(clampBox.y, Math.min(clampBox.bottom - boundingBox.height, coords.y))
+        x = Math.max(clampBox.left + 10, Math.min(coords.x, clampBox.right - 10)),
+        // y = Math.max(clampBox.top + 10, Math.min(coords.y, clampBox.bottom - 10))
+        y = Math.max(-courseHeight.toDouble, Math.min(coords.y, 0))
       )
     )
 
@@ -47,7 +47,7 @@ final case class Ship(health: Int, lives: Int, force: Vector2, coords: Vector2, 
   def updateMove(gameTime: GameTime, shipControl: ShipControl): Ship = {
     val gravity             = 10.0d
     val windResistance      = Vector2(0.95, 0.95)
-    val rotationSpeed       = Radians(7 * gameTime.delta.value)
+    val rotationSpeed       = Radians(5 * gameTime.delta.value)
     val angleReversed       = angle + Radians.TAUby2
     val acceleration        = 40 * gameTime.delta.value
     val gravityForce        = Vector2(0, Math.min(gravity, gravity * gameTime.delta.value))
@@ -136,7 +136,7 @@ object Ship {
       3,
       3,
       Vector2.zero,
-      Vector2(screenBounds.center.x.toDouble, screenBounds.center.y.toDouble) + Vector2(0, 32),
+      Vector2(screenBounds.center.x.toDouble, 0), // Vector2(screenBounds.center.x.toDouble, screenBounds.center.y.toDouble) + Vector2(0, 32),
       Radians.zero,
       Seconds.zero,
       Seconds.zero

@@ -7,22 +7,22 @@ import com.moonshot.viewmodel.ViewModel
 import com.moonshot.core.Assets
 import com.moonshot.model.Ship
 import com.moonshot.model.GameState
+import com.moonshot.model.Camera
+import com.moonshot.viewmodel.ViewInfo
+import com.moonshot.model.Course
 
 object LevelView {
 
+  def pointToScreenSpace(camera: Camera, viewInfo: ViewInfo): Point => Point =
+    _ + camera.inverse + Point(0, (viewInfo.giveScreenBounds.height / 2).toInt)
+
   def present(context: FrameContext[StartUpData], model: Game, viewModel: ViewModel): SceneUpdateFragment = {
-    val running              = context.gameTime.running
-    val textWaitTime: Double = 3
-
-    val screenSize: Rectangle =
-      viewModel.viewInfo.giveScreenBounds
-
-    val middle =
-      screenSize.center
+    val toScreenSpace: Point => Point = pointToScreenSpace(model.camera, viewModel.viewInfo)
+    val running                       = context.gameTime.running
 
     val shipGraphic = {
       val s = Assets.Rocket.rocket
-        .moveTo(model.ship.toScreenSpace)
+        .moveTo(toScreenSpace(model.ship.toScreenSpace))
         .rotate(model.ship.angle)
 
       if (running - model.ship.lastImpact < Ship.invulnerableFor)
@@ -35,6 +35,36 @@ object LevelView {
           .at(running)
       else s
     }
+
+    // val asteroidGraphic = Assets.Placeholder.blueBox
+
+    SceneUpdateFragment(shipGraphic)
+      .addGameLayerNodes(drawCourse(model.course, toScreenSpace))
+      // .addGameLayerNodes(
+      //   model.asteroids.map(a =>
+      //     asteroidGraphic
+      //       .moveTo(a.coords.x.toInt, a.coords.y.toInt)
+      //   )
+      // )
+      .addUiLayerNodes(drawUI(model, viewModel, viewModel.viewInfo.giveScreenBounds, running))
+      .withGameColorOverlay(
+        if (model.ship.lastDeath == Seconds.zero)
+          RGBA.Zero
+        else
+          RGBA.Black.withAmount(Math.min(1, (running - model.ship.lastDeath).value * 0.5))
+      )
+      .withMagnification(viewModel.viewInfo.magnification)
+  }
+
+  def drawCourse(course: Course, toScreenSpace: Point => Point): List[Graphic] =
+    course.belts.zipWithIndex.map {
+      case (belt, index) =>
+        Assets.Placeholder.redBox.moveTo(toScreenSpace(Point(0, -(belt.height * index).toInt)))
+    }
+
+  def drawUI(model: Game, viewModel: ViewModel, screenSize: Rectangle, running: Seconds): List[SceneGraphNode] = {
+    val middle               = screenSize.center
+    val textWaitTime: Double = 3
 
     val openingText =
       Text(
@@ -53,8 +83,6 @@ object LevelView {
             Math.max(0, 1 - ((running.value - viewModel.level.firstLoad.value - textWaitTime) * 0.3))
         )
 
-    val asteroidGraphic = Assets.Placeholder.blueBox
-
     val endText =
       model.gameState match {
         case GameState.GameWin =>
@@ -66,7 +94,7 @@ object LevelView {
               .moveTo(middle)
               .moveBy(0, 32)
               .alignCenter
-              .withAlpha(AnimationSignals.textFlash(Seconds(1)).at(context.running))
+              .withAlpha(AnimationSignals.textFlash(Seconds(1)).at(running))
           )
         case GameState.GameLoss =>
           List(
@@ -77,46 +105,30 @@ object LevelView {
               .moveTo(middle)
               .moveBy(0, 32)
               .alignCenter
-              .withAlpha(AnimationSignals.textFlash(Seconds(1)).at(context.running))
+              .withAlpha(AnimationSignals.textFlash(Seconds(1)).at(running))
           )
         case _ =>
           Nil
       }
 
-    SceneUpdateFragment(shipGraphic)
-      .addGameLayerNodes(
-        model.asteroids.map(a =>
-          asteroidGraphic
-            .moveTo(a.coords.x.toInt, a.coords.y.toInt)
-        )
-      )
-      .addUiLayerNodes(
-        List(
-          Text("Health: " + model.ship.health.toString(), 10, 10, 0, Assets.Font.fontKey),
-          Text(model.presentTime, screenSize.right - 10, 10, 0, Assets.Font.fontKey).alignRight,
-          Text(
-            model.percentComplete.toString + " / 100",
-            screenSize.right - 10,
-            30,
-            0,
-            Assets.Font.fontKey
-          ).alignRight,
-          Text(screenSize.width.toString() + " x " + screenSize.height.toString, screenSize.right - 10, 50, 0, Assets.Font.fontKey).alignRight,
-          openingText,
-          Text("Paused", 0, 0, 0, Assets.Font.fontKey)
-            .moveTo(middle)
-            .alignCenter
-            .withAlpha(if (model.gameState == GameState.GamePaused) 1 else 0)
-        )
-      )
-      .addUiLayerNodes(endText)
-      .withGameColorOverlay(
-        if (model.ship.lastDeath == Seconds.zero)
-          RGBA.Zero
-        else
-          RGBA.Black.withAmount(Math.min(1, (running - model.ship.lastDeath).value * 0.5))
-      )
-      .withMagnification(viewModel.viewInfo.magnification)
+    List(
+      Text("Health: " + model.ship.health.toString(), 10, 10, 0, Assets.Font.fontKey),
+      Text(model.presentTime, screenSize.right - 10, 10, 0, Assets.Font.fontKey).alignRight,
+      Text(
+        model.percentComplete.toString + " / 100",
+        screenSize.right - 10,
+        30,
+        0,
+        Assets.Font.fontKey
+      ).alignRight,
+      Text(screenSize.width.toString() + " x " + screenSize.height.toString, screenSize.right - 10, 50, 0, Assets.Font.fontKey).alignRight,
+      Text(model.ship.coords.toPoint.toString(), screenSize.right - 10, 70, 0, Assets.Font.fontKey).alignRight,
+      openingText,
+      Text("Paused", 0, 0, 0, Assets.Font.fontKey)
+        .moveTo(middle)
+        .alignCenter
+        .withAlpha(if (model.gameState == GameState.GamePaused) 1 else 0)
+    ) ++ endText
   }
 
 }

@@ -55,11 +55,12 @@ object Level extends Scene[StartUpData, Model, ViewModel] {
   def updateViewModel(context: FrameContext[StartUpData], model: Game, viewModel: ViewModel): GlobalEvent => Outcome[ViewModel] =
     ViewInfo.fullScreenToggleViewModel(viewModel).orElse {
       case FrameTick if context.running - viewModel.level.fumesLastSpawn > Seconds(0.025) =>
+        // Move to ship?
         val fumeEvents =
           if (context.inputState.keyboard.keysAreDown(Key.UP_ARROW))
             List(
               Fumes.spawn(
-                model.ship.toScreenSpace,
+                LevelView.pointToScreenSpace(model.camera, viewModel.viewInfo)(model.ship.toScreenSpace),
                 Seconds(context.dice.rollDouble * 0.5 + 0.5),
                 Radians(model.ship.angle.value + ((context.dice.rollDouble * 0.2) - 0.1))
               )
