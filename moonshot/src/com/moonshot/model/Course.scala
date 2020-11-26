@@ -2,7 +2,6 @@ package com.moonshot.model
 
 import indigo.shared.dice.Dice
 import indigo.shared.datatypes.Vector2
-import indigo.shared.datatypes.Point
 
 final case class Course(belts: List[Belt]) {
   def length      = belts.length
@@ -11,30 +10,35 @@ final case class Course(belts: List[Belt]) {
 
 sealed trait Belt {
   val height: Int = Belt.standardHeight
-  def getObstacles(dice: Dice, width: Int): List[Point]
+  def getObstacles(dice: Dice, width: Int): List[Vector2]
 }
 object Belt {
   val standardHeight: Int = 500
 
   case object Backyard extends Belt {
-    def getObstacles(dice: Dice, width: Int): List[Point] = Nil
+    def getObstacles(dice: Dice, width: Int): List[Vector2] = Nil
   }
+
   case object Moon extends Belt {
-    def getObstacles(dice: Dice, width: Int): List[Point] = Nil
+    def getObstacles(dice: Dice, width: Int): List[Vector2] = Nil
   }
 
   case object Sky extends Belt {
-    def getObstacles(dice: Dice, width: Int): List[Point] =
+    def getObstacles(dice: Dice, width: Int): List[Vector2] =
       Belt
         .getObstacles(dice, width, 10, 80, 32)
         .filter(o => o.y <= standardHeight)
   }
+
   case object EmptySpace extends Belt {
-    def getObstacles(dice: Dice, width: Int): List[Point] = Nil
+    def getObstacles(dice: Dice, width: Int): List[Vector2] =
+      Belt
+        .getObstacles(dice, width, 40, 64, 32)
+        .filter(o => o.y <= standardHeight)
   }
 
   case object Asertoids extends Belt {
-    def getObstacles(dice: Dice, width: Int): List[Point] =
+    def getObstacles(dice: Dice, width: Int): List[Vector2] =
       Belt
         .getObstacles(dice, width, 40, 64, 32)
         .filter(o => o.y <= standardHeight)
@@ -55,19 +59,19 @@ object Belt {
         Nil
       ),
       Nil
-    ).map(o => o.toPoint)
+    )
 
   private def buildObstacleRows(dice: Dice, numObstacles: Int, spaceBetweenX: Double, spaceBetweenY: Double, lastRow: List[Vector2], currentObstacles: List[Vector2]): List[Vector2] = {
     val currentRow =
       lastRow.map { o =>
-        val startPoint = new Vector2(o.x, o.y + spaceBetweenY * 2)
+        val startPoint = new Vector2(o.x, o.y - spaceBetweenY * 2)
         val a          = dice.rollDouble * 2 * Math.PI
         val r          = spaceBetweenX * Math.sqrt(dice.rollDouble)
 
         val x = r * Math.cos(a)
         val y = r * Math.sin(a)
 
-        new Vector2(startPoint.x + x, startPoint.y + y)
+        new Vector2(startPoint.x + x, startPoint.y - y)
       }
 
     val newObstacles = currentRow ++ currentObstacles
@@ -85,11 +89,12 @@ object Belt {
           spaceBetweenY,
           obstacles
             .filter(o2 =>
-              Math.max(o2.x, o.x) - Math.min(o2.x, o.x) >= spaceBetweenX &&
+              o2 != o &&
+                Math.max(o2.x, o.x) - Math.min(o2.x, o.x) >= spaceBetweenX &&
                 Math.max(o2.y, o.y) - Math.min(o2.y, o.y) >= spaceBetweenY
             ),
           o :: checkedObstacles
         )
-      case None => obstacles
+      case None => checkedObstacles
     }
 }

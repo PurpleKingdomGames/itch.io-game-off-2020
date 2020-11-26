@@ -3,6 +3,7 @@ package com.moonshot.model
 import com.moonshot.scenes.loading.LoadingModel
 import com.moonshot.scenes.WindowMode
 import indigo.shared.datatypes.Rectangle
+import indigo.shared.dice.Dice
 
 final case class Model(
     loadingScene: LoadingModel,
@@ -12,11 +13,11 @@ final case class Model(
 
 object Model {
 
-  def initial(screenBounds: Rectangle): Model =
+  def initial(dice: Dice, screenBounds: Rectangle): Model =
     Model(
       LoadingModel.initial,
       WindowMode.WindowedMode,
-      Game.initial(screenBounds)
+      Game.initial(dice, screenBounds)
     )
 
 }

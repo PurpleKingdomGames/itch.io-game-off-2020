@@ -14,7 +14,7 @@ final case class Game(
     gameState: GameState,
     ship: Ship,
     timeRemainingInSeconds: Seconds,
-    // asteroids: List[Asteroid],
+    asteroids: List[Asteroid],
     // initialSpeed: Double,
     // targetVerticalSpeed: Double,
     // verticalOffset: Double,
@@ -30,7 +30,7 @@ final case class Game(
   val targetMinAsteroidSpawnRate: Double = 0.1
   val targetMaxAsteroidSpawnRate: Double = 0.25
 
-  def update(gameTime: GameTime /*, dice: Dice*/, shipControl: ShipControl): GlobalEvent => Outcome[Game] = {
+  def update(gameTime: GameTime, dice: Dice, shipControl: ShipControl): GlobalEvent => Outcome[Game] = {
     case ScreenBoundsUpdated(newScreenBounds) =>
       Outcome(this.copy(screenBounds = newScreenBounds))
 
@@ -64,7 +64,7 @@ final case class Game(
     case KeyUp(Key.ENTER) =>
       gameState match {
         case GameState.GameWin | GameState.GameLoss =>
-          Outcome(Game.initial(screenBounds))
+          Outcome(Game.initial(dice, screenBounds))
 
         case _ =>
           Outcome(this)
@@ -117,7 +117,7 @@ final case class Game(
       ship
         .update(
           gameTime,
-          Nil, //asteroids.map(_.getBoundingBox),
+          asteroids.map(_.getBoundingBox),
           shipControl,
           BoundingBox(
             screenBounds.x.toDouble,
@@ -166,22 +166,43 @@ object Game {
   val targetVerticalSpeed: Double = 400
   val initialSpeed: Double        = 40
 
-  def initial(screenBounds: Rectangle): Game =
+  def initial(dice: Dice, screenBounds: Rectangle): Game = {
+    val course =
+      Course(List(Belt.Backyard, Belt.Sky, Belt.EmptySpace, Belt.Moon))
+
     Game(
       LevelType.Lander,
       GameState.GameRunning,
       Ship.initial(screenBounds),
       maxTimeLimit,
-      // Nil,
+      course.belts.zipWithIndex
+        .filter(b =>
+          b._1 match {
+            case Belt.Sky        => true
+            case Belt.EmptySpace => true
+            case _               => false
+          }
+        )
+        .map(b => (b._1.getObstacles(dice, screenBounds.width), b._2))
+        .flatMap(t =>
+          t._1
+            .map(o =>
+              Asteroid.initial
+                .moveTo(o.x, o.y + (t._2 * -Belt.standardHeight))
+                .withRotation(dice.rollDouble * 360)
+                .withRotationSpeed(dice.rollDouble)
+            )
+        ),
       // initialSpeed,
       // targetVerticalSpeed,
       // 0,
       // 0,
       // Game.maxTimeLimit.toDouble * 2 * Game.initialSpeed,
       screenBounds,
-      Course(List(Belt.Backyard, Belt.Sky, Belt.EmptySpace, Belt.Moon)),
+      course,
       Camera.initial
     )
+  }
 }
 
 sealed trait GameState

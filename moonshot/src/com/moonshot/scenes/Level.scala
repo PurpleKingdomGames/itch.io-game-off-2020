@@ -37,7 +37,7 @@ object Level extends Scene[StartUpData, Model, ViewModel] {
 
   def updateModel(context: FrameContext[StartUpData], model: Game): GlobalEvent => Outcome[Game] = {
     case ResetLevel =>
-      Outcome(Game.initial(model.screenBounds))
+      Outcome(Game.initial(context.dice, model.screenBounds))
 
     case FrameTick if goToCustomisation(model.ship, context.running) =>
       Outcome(
@@ -47,7 +47,8 @@ object Level extends Scene[StartUpData, Model, ViewModel] {
 
     case e =>
       model.update(
-        context.gameTime /*, context.dice*/,
+        context.gameTime,
+        context.dice,
         context.inputState.mapInputs(Ship.inputMappings, ShipControl.Idle)
       )(e)
   }

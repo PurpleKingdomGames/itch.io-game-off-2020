@@ -73,12 +73,13 @@ object Moonshot extends IndigoGame[BootData, StartUpData, Model, ViewModel] {
     Startup.Success(
       StartUpData(
         bootData.startingMagnification,
-        bootData.gameViewport
+        bootData.gameViewport,
+        dice
       )
     )
 
   def initialModel(startupData: StartUpData): Model =
-    Model.initial(startupData.initialScreenBounds)
+    Model.initial(startupData.dice, startupData.initialScreenBounds)
 
   def initialViewModel(startupData: StartUpData, model: Model): ViewModel =
     ViewModel.initial(startupData.magnification, startupData.gameViewport)

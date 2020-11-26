@@ -36,16 +36,16 @@ object LevelView {
       else s
     }
 
-    // val asteroidGraphic = Assets.Placeholder.blueBox
+    val asteroidGraphic = Assets.Placeholder.blueBox
 
     SceneUpdateFragment(shipGraphic)
       .addGameLayerNodes(drawCourse(model.course, toScreenSpace))
-      // .addGameLayerNodes(
-      //   model.asteroids.map(a =>
-      //     asteroidGraphic
-      //       .moveTo(a.coords.x.toInt, a.coords.y.toInt)
-      //   )
-      // )
+      .addGameLayerNodes(
+        model.asteroids.map(a =>
+          asteroidGraphic
+            .moveTo(toScreenSpace(a.coords.toPoint))
+        )
+      )
       .addUiLayerNodes(drawUI(model, viewModel, viewModel.viewInfo.giveScreenBounds, running))
       .withGameColorOverlay(
         if (model.ship.lastDeath == Seconds.zero)
@@ -112,7 +112,8 @@ object LevelView {
       }
 
     List(
-      Text("Health: " + model.ship.health.toString(), 10, 10, 0, Assets.Font.fontKey),
+      //Text("Health: " + model.ship.health.toString(), 10, 10, 0, Assets.Font.fontKey),
+      Text(model.asteroids.length.toString(), 10, 10, 0, Assets.Font.fontKey),
       Text(model.presentTime, screenSize.right - 10, 10, 0, Assets.Font.fontKey).alignRight,
       Text(
         model.percentComplete.toString + " / 100",
