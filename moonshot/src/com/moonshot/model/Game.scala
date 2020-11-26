@@ -141,7 +141,11 @@ final case class Game(
           //   ),
           // verticalOffset = Math.min(targetVerticalOffset, verticalOffset + verticalDelta),
           timeRemainingInSeconds = Seconds(Math.max(0, (timeRemainingInSeconds - gameTime.delta).toDouble)),
-          camera = camera.update(nextShip.coords.toPoint, nextShip.angle, course.height, screenBounds.height)
+          camera =
+            if (nextShip.health > 0)
+              camera.update(nextShip.coords.toPoint, nextShip.angle, course.height, screenBounds.height)
+            else
+              camera
         )
       // .spawnAsteroid(gameTime, dice, screenBounds)
     )
