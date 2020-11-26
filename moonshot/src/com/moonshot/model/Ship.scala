@@ -10,7 +10,7 @@ import com.moonshot.model.ShipControl.Thrust
 import com.moonshot.model.ShipControl.ThrustLeft
 import com.moonshot.model.ShipControl.ThrustRight
 
-final case class Ship(health: Int, lives: Int, force: Vector2, coords: Vector2, angle: Radians, lastImpact: Seconds, lastDeath: Seconds) {
+final case class Ship(health: Int, lives: Int, force: Vector2, coords: Vector2, angle: Radians, lastImpact: Seconds, lastDeath: Seconds, gravity: Double) {
   val boundingBox: BoundingBox =
     new BoundingBox(new Vertex(coords.x - 32, coords.y - 32), new Vertex(64, 64))
 
@@ -22,9 +22,15 @@ final case class Ship(health: Int, lives: Int, force: Vector2, coords: Vector2, 
         .updateMove(gameTime, shipControl)
         .clampTo(screenBounds, courseHeight)
         .updateAsteroidCollisions(gameTime, asteroids)
+        .copy(
+          gravity = Ship.StandardGravity * (1 - -(coords.y / courseHeight.toDouble))
+        )
 
       if (newShip.health <= 0)
-        newShip.copy(lives = newShip.lives - 1, lastDeath = gameTime.running)
+        newShip.copy(
+          lives = newShip.lives - 1,
+          lastDeath = gameTime.running
+        )
       else
         newShip
     }
@@ -45,7 +51,6 @@ final case class Ship(health: Int, lives: Int, force: Vector2, coords: Vector2, 
     coords.toPoint
 
   def updateMove(gameTime: GameTime, shipControl: ShipControl): Ship = {
-    val gravity             = 10.0d
     val windResistance      = Vector2(0.95, 0.95)
     val rotationSpeed       = Radians(5 * gameTime.delta.value)
     val angleReversed       = angle + Radians.TAUby2
@@ -128,6 +133,8 @@ final case class Ship(health: Int, lives: Int, force: Vector2, coords: Vector2, 
 
 object Ship {
 
+  val StandardGravity: Double = 12.0d
+
   val invulnerableFor: Seconds =
     Seconds(1.5)
 
@@ -139,7 +146,8 @@ object Ship {
       Vector2(screenBounds.center.x.toDouble, 0), // Vector2(screenBounds.center.x.toDouble, screenBounds.center.y.toDouble) + Vector2(0, 32),
       Radians.zero,
       Seconds.zero,
-      Seconds.zero
+      Seconds.zero,
+      StandardGravity
     )
 
   val inputMappings: InputMapping[ShipControl] =

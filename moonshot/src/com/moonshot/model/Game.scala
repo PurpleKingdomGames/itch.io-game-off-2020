@@ -158,7 +158,7 @@ final case class Game(
   }
 
   def percentComplete: Double =
-    0 // Math.floor((100 * (verticalOffset / targetVerticalOffset)) * 100) / 100
+    Math.floor((100 * -(ship.coords.y / course.height.toDouble)) * 100) / 100
 }
 
 object Game {
