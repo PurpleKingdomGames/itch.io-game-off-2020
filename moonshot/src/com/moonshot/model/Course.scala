@@ -26,31 +26,31 @@ object Belt {
   case object Sky extends Belt {
     def getObstacles(dice: Dice, width: Int): List[Vector2] =
       Belt
-        .getObstacles(dice, width, 10, 80, 32)
+        .getObstacles(dice, width, height, 80, 32)
         .filter(o => o.y <= standardHeight)
   }
 
   case object EmptySpace extends Belt {
     def getObstacles(dice: Dice, width: Int): List[Vector2] =
       Belt
-        .getObstacles(dice, width, 40, 64, 32)
+        .getObstacles(dice, width, height, 64, 32)
         .filter(o => o.y <= standardHeight)
   }
 
   case object Asertoids extends Belt {
     def getObstacles(dice: Dice, width: Int): List[Vector2] =
       Belt
-        .getObstacles(dice, width, 40, 64, 32)
+        .getObstacles(dice, width, height, 64, 32)
         .filter(o => o.y <= standardHeight)
   }
 
-  private def getObstacles(dice: Dice, width: Int, numObstacles: Int, spaceBetweenX: Double, spaceBetweenY: Double) =
+  private def getObstacles(dice: Dice, width: Int, height: Int, spaceBetweenX: Double, spaceBetweenY: Double) =
     filterCollisions(
       spaceBetweenX,
       spaceBetweenY,
       buildObstacleRows(
         dice,
-        numObstacles,
+        height,
         spaceBetweenX,
         spaceBetweenY,
         List
@@ -61,7 +61,7 @@ object Belt {
       Nil
     )
 
-  private def buildObstacleRows(dice: Dice, numObstacles: Int, spaceBetweenX: Double, spaceBetweenY: Double, lastRow: List[Vector2], currentObstacles: List[Vector2]): List[Vector2] = {
+  private def buildObstacleRows(dice: Dice, height: Int, spaceBetweenX: Double, spaceBetweenY: Double, lastRow: List[Vector2], currentObstacles: List[Vector2]): List[Vector2] = {
     val currentRow =
       lastRow.map { o =>
         val startPoint = new Vector2(o.x, o.y - spaceBetweenY * 2)
@@ -75,10 +75,10 @@ object Belt {
       }
 
     val newObstacles = currentRow ++ currentObstacles
-    if (newObstacles.length < numObstacles)
-      buildObstacleRows(dice, numObstacles, spaceBetweenX, spaceBetweenY, currentRow, newObstacles)
+    if (newObstacles.map(_.y).min > -standardHeight)
+      buildObstacleRows(dice, height, spaceBetweenX, spaceBetweenY, currentRow, newObstacles)
     else
-      newObstacles.take(numObstacles)
+      newObstacles.filter(o => o.y > -height)
   }
 
   private def filterCollisions(spaceBetweenX: Double, spaceBetweenY: Double, obstacles: List[Vector2], checkedObstacles: List[Vector2]): List[Vector2] =
