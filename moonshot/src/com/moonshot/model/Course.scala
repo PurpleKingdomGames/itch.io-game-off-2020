@@ -152,7 +152,11 @@ object Belt {
         spaceBetweenY,
         List
           .range(0, (width.doubleValue / spaceBetweenX).toInt)
-          .map(i => new Vector2((dice.rollDouble * i * spaceBetweenX) + (i * spaceBetweenX * 0.75), 0)),
+          .map { i =>
+            val min = i * spaceBetweenX * 0.9
+            val max = i * spaceBetweenX
+            new Vector2((dice.rollDouble * (max - min)) + min, 0)
+          },
         Nil
       ),
       Nil
