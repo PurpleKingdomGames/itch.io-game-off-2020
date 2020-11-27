@@ -10,6 +10,7 @@ import com.moonshot.model.GameState
 import com.moonshot.model.Camera
 import com.moonshot.viewmodel.ViewInfo
 import com.moonshot.model.Course
+import com.moonshot.core.Prefabs
 
 object LevelView {
 
@@ -22,7 +23,7 @@ object LevelView {
     val renderBounds                  = new Rectangle(new Point(-16, -16), model.screenBounds.size + 32)
 
     val shipGraphic = {
-      val s = Assets.Rocket.rocket
+      val s = Prefabs.rocket
         .moveTo(toScreenSpace(model.ship.toScreenSpace))
         .rotate(model.ship.angle)
 
@@ -40,7 +41,7 @@ object LevelView {
     val asteroidGraphic = Assets.Placeholder.blueBox
 
     SceneUpdateFragment(shipGraphic)
-      .addGameLayerNodes(drawCourse(model.course, toScreenSpace))
+      .addGameLayerNodes(drawCourse(model.course, model.screenBounds, toScreenSpace))
       .addGameLayerNodes(
         model.asteroids
           .filter(a => renderBounds.isPointWithin(toScreenSpace(a.coords.toPoint)))
@@ -59,16 +60,10 @@ object LevelView {
       .withMagnification(viewModel.viewInfo.magnification)
   }
 
-  def drawCourse(course: Course, toScreenSpace: Point => Point): List[Graphic] =
-    course.belts.zipWithIndex.map {
+  def drawCourse(course: Course, screenSize: Rectangle, toScreenSpace: Point => Point): List[SceneGraphNode] =
+    course.belts.zipWithIndex.flatMap {
       case (belt, index) =>
-        val box = Assets.Placeholder.redBox
-        
-        box.moveTo(
-          toScreenSpace(
-            Point(0, -((belt.height * index).toInt + box.lazyBounds.height))
-          )
-        )
+        belt.background(screenSize, -((belt.height * index).toInt), toScreenSpace)
     }
 
   def drawUI(model: Game, viewModel: ViewModel, screenSize: Rectangle, running: Seconds): List[SceneGraphNode] = {

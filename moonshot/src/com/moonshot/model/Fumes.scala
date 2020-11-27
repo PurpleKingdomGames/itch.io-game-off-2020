@@ -2,8 +2,8 @@ package com.moonshot.model
 
 import indigo._
 import indigoextras.subsystems._
-import com.moonshot.core.Assets
 import indigoextras.subsystems.AutomataEvent
+import com.moonshot.core.Prefabs
 
 object Fumes {
 
@@ -17,7 +17,7 @@ object Fumes {
 
   val automaton: Automaton =
     Automaton(
-      AutomatonNode.OneOf(Assets.Rocket.clouds),
+      AutomatonNode.OneOf(Prefabs.fumes),
       Seconds.zero
     ).withModifier(modifier)
 

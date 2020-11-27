@@ -193,7 +193,7 @@ object Game {
           t._1
             .map(o =>
               Asteroid.initial
-                .moveTo(o.x, o.y + (t._2 * -Belt.standardHeight))
+                .moveTo(o.x, o.y + (t._2 * -Belt.Asertoids.height))
                 .withRotation(dice.rollDouble * 360)
                 .withRotationSpeed(dice.rollDouble)
             )

@@ -9,6 +9,7 @@ import com.moonshot.core.StartUpData
 import com.moonshot.viewmodel.ViewModel
 import com.moonshot.viewmodel.ViewInfo
 import com.moonshot.viewmodel.CustomisationViewModel
+import com.moonshot.core.Prefabs
 
 object Customisation extends Scene[StartUpData, Model, ViewModel] {
 
@@ -91,7 +92,7 @@ object Customisation extends Scene[StartUpData, Model, ViewModel] {
       AnimationSignals
         .crashShip(middle, shipFallDuration)
         .map { pt =>
-          Assets.Rocket.rocket
+          Prefabs.rocket
             .rotate(Radians(3.6))
             .moveTo(pt)
         }

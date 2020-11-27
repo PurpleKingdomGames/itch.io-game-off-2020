@@ -1,9 +1,10 @@
 package com.moonshot.model
 
-import indigo.shared.dice.Dice
-import indigo.shared.datatypes.Vector2
 import indigoextras.geometry.LineSegment
 import indigoextras.geometry.Vertex
+import com.moonshot.core.Prefabs
+import indigo._
+import com.moonshot.core.Assets
 
 final case class Course(belts: List[Belt]) {
   def length      = belts.length
@@ -24,55 +25,122 @@ final case class Course(belts: List[Belt]) {
 }
 
 sealed trait Belt {
-  val height: Int = Belt.standardHeight
+  val height: Int
+
   def getObstacles(dice: Dice, width: Int): List[Vector2]
   def getPlatforms: List[LineSegment]
+
+  def background(screenSize: Rectangle, verticalOffset: Int, toScreenSpace: Point => Point): List[SceneGraphNode]
 }
 object Belt {
-  val standardHeight: Int = 2000
 
   case object Backyard extends Belt {
+    val height: Int = 500
+
     def getObstacles(dice: Dice, width: Int): List[Vector2] = Nil
 
     def getPlatforms: List[LineSegment] =
       List(
         LineSegment(Vertex(-100, 1), Vertex(500, 1))
       )
+
+    def background(screenSize: Rectangle, verticalOffset: Int, toScreenSpace: Point => Point): List[SceneGraphNode] = {
+
+      val ground =
+        Assets.Placeholder.redBox
+          .moveTo(toScreenSpace(Point(0, 0)))
+          .scaleBy(640 / 32, 1)
+          .withOverlay(Overlay.Color(RGBA(0.9, 0.9, 0.9, 1.0)))
+
+      val bgColour =
+        Prefabs.swatch1
+          .moveTo(toScreenSpace(Point(0, -height + verticalOffset)))
+          .scaleBy(screenSize.width.toDouble / 32.0, height.toDouble / 32.0)
+
+      List(
+        bgColour,
+        ground
+      )
+    }
   }
 
   case object Moon extends Belt {
-    def getObstacles(dice: Dice, width: Int): List[Vector2] = Nil
-    def getPlatforms: List[LineSegment]                     = Nil
+    val height: Int = 1000
+
+    def getObstacles(dice: Dice, width: Int): List[Vector2] =
+      Nil
+
+    def getPlatforms: List[LineSegment] =
+      Nil
+
+    def background(screenSize: Rectangle, verticalOffset: Int, toScreenSpace: Point => Point): List[SceneGraphNode] =
+      Nil
   }
 
   case object Sky extends Belt {
+    val height: Int = 500
+
     def getObstacles(dice: Dice, width: Int): List[Vector2] =
       Belt
         .getObstacles(dice, width, height, 80, 32)
-        .filter(o => o.y <= standardHeight)
+        .filter(o => o.y <= height)
 
     def getPlatforms: List[LineSegment] =
       List(
         LineSegment(Vertex(0, 0), Vertex(100, 0))
       )
+
+    def background(screenSize: Rectangle, verticalOffset: Int, toScreenSpace: Point => Point): List[SceneGraphNode] =
+      List(
+        Prefabs.swatch6
+          .moveTo(toScreenSpace(Point(0, (-32 * 6) + verticalOffset)))
+          .scaleBy(screenSize.width.toDouble / 32.0, 1),
+        Prefabs.swatch5
+          .moveTo(toScreenSpace(Point(0, (-32 * 5) + verticalOffset)))
+          .scaleBy(screenSize.width.toDouble / 32.0, 1),
+        Prefabs.swatch4
+          .moveTo(toScreenSpace(Point(0, (-32 * 4) + verticalOffset)))
+          .scaleBy(screenSize.width.toDouble / 32.0, 1),
+        Prefabs.swatch3
+          .moveTo(toScreenSpace(Point(0, (-32 * 3) + verticalOffset)))
+          .scaleBy(screenSize.width.toDouble / 32.0, 1),
+        Prefabs.swatch2
+          .moveTo(toScreenSpace(Point(0, (-32 * 2) + verticalOffset)))
+          .scaleBy(screenSize.width.toDouble / 32.0, 1),
+        Prefabs.swatch1
+          .moveTo(toScreenSpace(Point(0, (-32 * 1) + verticalOffset)))
+          .scaleBy(screenSize.width.toDouble / 32.0, 1)
+      )
   }
 
   case object EmptySpace extends Belt {
+    val height: Int = 500
+
     def getObstacles(dice: Dice, width: Int): List[Vector2] =
       Belt
         .getObstacles(dice, width, height, 64, 32)
-        .filter(o => o.y <= standardHeight)
+        .filter(o => o.y <= height)
 
-    def getPlatforms: List[LineSegment] = Nil
+    def getPlatforms: List[LineSegment] =
+      Nil
+
+    def background(screenSize: Rectangle, verticalOffset: Int, toScreenSpace: Point => Point): List[SceneGraphNode] =
+      Nil
   }
 
   case object Asertoids extends Belt {
+    val height: Int = 1000
+
     def getObstacles(dice: Dice, width: Int): List[Vector2] =
       Belt
         .getObstacles(dice, width, height, 64, 32)
-        .filter(o => o.y <= standardHeight)
+        .filter(o => o.y <= height)
 
-    def getPlatforms: List[LineSegment] = Nil
+    def getPlatforms: List[LineSegment] =
+      Nil
+
+    def background(screenSize: Rectangle, verticalOffset: Int, toScreenSpace: Point => Point): List[SceneGraphNode] =
+      Nil
   }
 
   private def getObstacles(dice: Dice, width: Int, height: Int, spaceBetweenX: Double, spaceBetweenY: Double) =
@@ -106,7 +174,7 @@ object Belt {
       }
 
     val newObstacles = currentRow ++ currentObstacles
-    if (newObstacles.map(_.y).min > -standardHeight)
+    if (newObstacles.map(_.y).min > -height)
       buildObstacleRows(dice, height, spaceBetweenX, spaceBetweenY, currentRow, newObstacles)
     else
       newObstacles.filter(o => o.y > -height)
