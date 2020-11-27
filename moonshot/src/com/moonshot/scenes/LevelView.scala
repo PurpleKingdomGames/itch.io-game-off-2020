@@ -19,6 +19,7 @@ object LevelView {
   def present(context: FrameContext[StartUpData], model: Game, viewModel: ViewModel): SceneUpdateFragment = {
     val toScreenSpace: Point => Point = pointToScreenSpace(model.camera, viewModel.viewInfo)
     val running                       = context.gameTime.running
+    val renderBounds                  = new Rectangle(new Point(-16, -16), model.screenBounds.size + 32)
 
     val shipGraphic = {
       val s = Assets.Rocket.rocket
@@ -41,10 +42,12 @@ object LevelView {
     SceneUpdateFragment(shipGraphic)
       .addGameLayerNodes(drawCourse(model.course, toScreenSpace))
       .addGameLayerNodes(
-        model.asteroids.map(a =>
-          asteroidGraphic
-            .moveTo(toScreenSpace(a.coords.toPoint))
-        )
+        model.asteroids
+          .filter(a => renderBounds.isPointWithin(toScreenSpace(a.coords.toPoint)))
+          .map(a =>
+            asteroidGraphic
+              .moveTo(toScreenSpace(a.coords.toPoint))
+          )
       )
       .addUiLayerNodes(drawUI(model, viewModel, viewModel.viewInfo.giveScreenBounds, running))
       .withGameColorOverlay(
@@ -112,8 +115,7 @@ object LevelView {
       }
 
     List(
-      //Text("Health: " + model.ship.health.toString(), 10, 10, 0, Assets.Font.fontKey),
-      Text(model.asteroids.length.toString(), 10, 10, 0, Assets.Font.fontKey),
+      Text("Health: " + model.ship.health.toString(), 10, 10, 0, Assets.Font.fontKey),
       Text(model.presentTime, screenSize.right - 10, 10, 0, Assets.Font.fontKey).alignRight,
       Text(
         model.percentComplete.toString + " / 100",
