@@ -50,9 +50,9 @@ object Assets {
       Animation(
         thrustAnimationKey,
         Material.Textured(spriteSheetName),
-        Frame(Rectangle(32, 64, 32, 32), Millis(100)),
-        Frame(Rectangle(32, 96, 32, 32), Millis(100)),
-        Frame(Rectangle(32, 128, 32, 32), Millis(100))
+        Frame(Rectangle(32, 64, 32, 32), Millis(50)),
+        Frame(Rectangle(32, 96, 32, 32), Millis(50)),
+        Frame(Rectangle(32, 128, 32, 32), Millis(50))
       )
 
   }
@@ -126,6 +126,11 @@ object Prefabs {
     Graphic(Rectangle(0, 0, 64, 64), 1, Material.Textured(Assets.spriteSheetName))
       .withCrop(32, 0, 64, 64)
       .withRef(32, 32)
+
+  val thrust: Sprite =
+    Sprite(BindingKey("thrust"), 0, 0, 3, Assets.Rocket.thrustAnimationKey)
+      .withRef(14, -25)
+      .play()
 
   val fumes: NonEmptyList[SceneGraphNode] =
     NonEmptyList

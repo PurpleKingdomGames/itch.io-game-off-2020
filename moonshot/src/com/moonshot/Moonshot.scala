@@ -51,6 +51,7 @@ object Moonshot extends IndigoGame[BootData, StartUpData, Model, ViewModel] {
       .withAssets(Assets.loadingAssets(assetPath))
       .withFonts(Assets.Font.fontInfo)
       .withSubSystems(FPSCounter(Assets.Font.fontKey, Point(150, 10), targetFPS))
+      .withAnimations(Assets.Rocket.thrustAnimation)
   }
 
   def scenes(bootData: BootData): NonEmptyList[Scene[StartUpData, Model, ViewModel]] =

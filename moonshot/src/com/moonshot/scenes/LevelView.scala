@@ -38,9 +38,20 @@ object LevelView {
       else s
     }
 
+    val combinedShip =
+      if (context.inputState.keyboard.keysAreDown(Key.UP_ARROW))
+        List(
+          Prefabs.thrust
+            .moveTo(toScreenSpace(model.ship.toScreenSpace))
+            .rotate(model.ship.angle),
+          shipGraphic
+        )
+      else
+        List(shipGraphic)
+
     val asteroidGraphic = Assets.Placeholder.blueBox
 
-    SceneUpdateFragment(shipGraphic)
+    SceneUpdateFragment(combinedShip)
       .addGameLayerNodes(drawCourse(model.course, model.screenBounds, toScreenSpace))
       .addGameLayerNodes(
         model.asteroids
