@@ -188,13 +188,6 @@ object Game {
             case None => List((b, 0))
           }
         }
-        .filter(b =>
-          b._1 match {
-            case Belt.Sky        => true
-            case Belt.EmptySpace => true
-            case _               => false
-          }
-        )
         .map(b => (b._1.getObstacles(dice, screenBounds.width), b._2))
         .flatMap(t =>
           t._1
@@ -203,6 +196,14 @@ object Game {
                 .moveTo(o.x, o.y - t._2)
                 .withRotation(dice.rollDouble * 360)
                 .withRotationSpeed(dice.rollDouble)
+                .withType(
+                  dice.roll(4) match {
+                    case 1 => AsteroidType.Small
+                    case 2 => AsteroidType.Medium
+                    case 3 => AsteroidType.Big
+                    case _ => AsteroidType.ThatsNoMoon
+                  }
+                )
             )
         ),
       // initialSpeed,

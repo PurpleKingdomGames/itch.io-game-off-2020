@@ -11,6 +11,10 @@ import com.moonshot.model.Camera
 import com.moonshot.viewmodel.ViewInfo
 import com.moonshot.model.Course
 import com.moonshot.core.Prefabs
+import com.moonshot.model.AsteroidType.Small
+import com.moonshot.model.AsteroidType.Medium
+import com.moonshot.model.AsteroidType.Big
+import com.moonshot.model.AsteroidType.ThatsNoMoon
 
 object LevelView {
 
@@ -18,9 +22,10 @@ object LevelView {
     _ + camera.inverse + Point(0, (viewInfo.giveScreenBounds.height / 2).toInt)
 
   def present(context: FrameContext[StartUpData], model: Game, viewModel: ViewModel): SceneUpdateFragment = {
+    val boundPadding                  = 128
     val toScreenSpace: Point => Point = pointToScreenSpace(model.camera, viewModel.viewInfo)
     val running                       = context.gameTime.running
-    val renderBounds                  = new Rectangle(new Point(-16, -16), model.screenBounds.size + 32)
+    val renderBounds                  = new Rectangle(new Point(-boundPadding / 2, -boundPadding / 2), model.screenBounds.size + boundPadding)
 
     val shipGraphic = {
       val s = Prefabs.rocket
@@ -49,15 +54,22 @@ object LevelView {
       else
         List(shipGraphic)
 
-    val asteroidGraphic = Assets.Placeholder.blueBox
-
     SceneUpdateFragment(combinedShip)
       .addGameLayerNodes(drawCourse(model.course, model.screenBounds, toScreenSpace))
       .addGameLayerNodes(
         model.asteroids
           .filter(a => renderBounds.isPointWithin(toScreenSpace(a.coords.toPoint)))
           .map(a =>
-            asteroidGraphic
+            (a._type match {
+              case Small =>
+                Prefabs.asteroid1
+              case Medium =>
+                Prefabs.asteroid2
+              case Big =>
+                Prefabs.asteroid3
+              case ThatsNoMoon =>
+                Prefabs.asteroid4
+            })
               .moveTo(toScreenSpace(a.coords.toPoint))
           )
       )
