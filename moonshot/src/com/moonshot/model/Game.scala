@@ -180,7 +180,14 @@ object Game {
       GameState.GameRunning,
       Ship.initial(screenBounds),
       maxTimeLimit,
-      course.belts.zipWithIndex
+      course.belts
+        .foldLeft(List[(Belt, Int)]()) { (l, b) =>
+          l.headOption match {
+            case Some((b1, height)) =>
+              (b, height + b1.height) :: l
+            case None => List((b, 0))
+          }
+        }
         .filter(b =>
           b._1 match {
             case Belt.Sky        => true
@@ -193,7 +200,7 @@ object Game {
           t._1
             .map(o =>
               Asteroid.initial
-                .moveTo(o.x, o.y + (t._2 * -Belt.Asertoids.height))
+                .moveTo(o.x, o.y - t._2)
                 .withRotation(dice.rollDouble * 360)
                 .withRotationSpeed(dice.rollDouble)
             )
