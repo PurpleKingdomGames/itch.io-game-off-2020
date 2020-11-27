@@ -54,40 +54,69 @@ object LevelView {
       else
         List(shipGraphic)
 
-    SceneUpdateFragment(combinedShip)
-      .addGameLayerNodes(drawCourse(model.course, model.screenBounds, toScreenSpace))
-      .addGameLayerNodes(
-        model.asteroids
-          .filter(a => renderBounds.isPointWithin(toScreenSpace(a.coords.toPoint)))
-          .map(a =>
-            (a._type match {
-              case Small =>
-                Prefabs.asteroid1
-              case Medium =>
-                Prefabs.asteroid2
-              case Big =>
-                Prefabs.asteroid3
-              case ThatsNoMoon =>
-                Prefabs.asteroid4
-            })
-              .moveTo(toScreenSpace(a.coords.toPoint))
-          )
-      )
-      .addUiLayerNodes(drawUI(model, viewModel, viewModel.viewInfo.giveScreenBounds, running))
-      .withGameColorOverlay(
-        if (model.ship.lastDeath == Seconds.zero)
-          RGBA.Zero
-        else
-          RGBA.Black.withAmount(Math.min(1, (running - model.ship.lastDeath).value * 0.5))
-      )
-      .withMagnification(viewModel.viewInfo.magnification)
+    drawCourse(model.course, model.screenBounds, toScreenSpace) |+|
+      SceneUpdateFragment(combinedShip)
+        .addGameLayerNodes(
+          model.asteroids
+            .filter(a => renderBounds.isPointWithin(toScreenSpace(a.coords.toPoint)))
+            .map(a =>
+              (a._type match {
+                case Small =>
+                  Prefabs.asteroid1
+                case Medium =>
+                  Prefabs.asteroid2
+                case Big =>
+                  Prefabs.asteroid3
+                case ThatsNoMoon =>
+                  Prefabs.asteroid4
+              })
+                .moveTo(toScreenSpace(a.coords.toPoint))
+            )
+        )
+        .addUiLayerNodes(drawUI(model, viewModel, viewModel.viewInfo.giveScreenBounds, running))
+        .withGameColorOverlay(
+          if (model.ship.lastDeath == Seconds.zero)
+            RGBA.Zero
+          else
+            RGBA.Black.withAmount(Math.min(1, (running - model.ship.lastDeath).value * 0.5))
+        )
+        .withMagnification(viewModel.viewInfo.magnification)
   }
 
-  def drawCourse(course: Course, screenSize: Rectangle, toScreenSpace: Point => Point): List[SceneGraphNode] =
-    course.belts.zipWithIndex.flatMap {
-      case (belt, index) =>
-        belt.background(screenSize, -((belt.height * index).toInt), toScreenSpace)
-    }
+  def drawCourse(course: Course, screenSize: Rectangle, toScreenSpace: Point => Point): SceneUpdateFragment =
+    SceneUpdateFragment.empty
+      .addGameLayerNodes {
+        course.belts
+          .foldLeft((List.empty[SceneGraphNode], 0)) {
+            case ((nodes, verticalOffset), belt) =>
+              (nodes ++ belt.background(screenSize, verticalOffset, toScreenSpace), verticalOffset - belt.height)
+          }
+          ._1
+      }
+      .addUiLayerNodes( // Debug only - remove later
+        course.belts
+          .foldLeft((List.empty[SceneGraphNode], 0)) {
+            case ((nodes, verticalOffset), belt) =>
+              val box = Assets.Placeholder.redBox
+
+              val redPosition: Point   = Point(0, -belt.height + verticalOffset)
+              val greenPosition: Point = Point(0, verticalOffset - box.lazyBounds.height)
+
+              IndigoLogger.debugOnce(redPosition.toString() + " : " + greenPosition.toString())
+
+              val res =
+                List(
+                  box
+                    .moveTo(toScreenSpace(redPosition)),
+                  box
+                    .moveTo(toScreenSpace(greenPosition))
+                    .withOverlay(Overlay.Color(RGBA.Green))
+                )
+
+              (nodes ++ res, verticalOffset - belt.height)
+          }
+          ._1
+      )
 
   def drawUI(model: Game, viewModel: ViewModel, screenSize: Rectangle, running: Seconds): List[SceneGraphNode] = {
     val middle               = screenSize.center

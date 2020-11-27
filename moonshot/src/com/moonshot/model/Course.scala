@@ -10,10 +10,10 @@ final case class Course(belts: List[Belt]) {
   def length      = belts.length
   val height: Int = belts.map(_.height).sum
 
-  def givePlatforms: List[LineSegment] =
+  def givePlatforms(screenSize: Rectangle): List[LineSegment] =
     belts.zipWithIndex.flatMap {
       case (b, i) =>
-        b.getPlatforms.map { ls =>
+        b.getPlatforms(screenSize).map { ls =>
           val moveBy = -(b.height * i).toDouble
 
           LineSegment(
@@ -28,7 +28,7 @@ sealed trait Belt {
   val height: Int
 
   def getObstacles(dice: Dice, width: Int): List[Vector2]
-  def getPlatforms: List[LineSegment]
+  def getPlatforms(screenSize: Rectangle): List[LineSegment]
 
   def background(screenSize: Rectangle, verticalOffset: Int, toScreenSpace: Point => Point): List[SceneGraphNode]
 }
@@ -39,7 +39,7 @@ object Belt {
 
     def getObstacles(dice: Dice, width: Int): List[Vector2] = Nil
 
-    def getPlatforms: List[LineSegment] =
+    def getPlatforms(screenSize: Rectangle): List[LineSegment] =
       List(
         LineSegment(Vertex(-100, 1), Vertex(500, 1))
       )
@@ -65,16 +65,30 @@ object Belt {
   }
 
   case object Moon extends Belt {
-    val height: Int = 1000
+    val height: Int = 500
 
     def getObstacles(dice: Dice, width: Int): List[Vector2] =
       Nil
 
-    def getPlatforms: List[LineSegment] =
-      Nil
+    def getPlatforms(screenSize: Rectangle): List[LineSegment] =
+      List(
+        LineSegment(
+          Vertex(
+            x = screenSize.width.toDouble / 2 - 64,
+            y = -(height.toDouble / 2)
+          ),
+          Vertex(
+            x = screenSize.width.toDouble / 2 + 64,
+            y = -(height.toDouble / 2)
+          )
+        )
+      )
 
     def background(screenSize: Rectangle, verticalOffset: Int, toScreenSpace: Point => Point): List[SceneGraphNode] =
-      Nil
+      List(
+        Prefabs.moon
+          .moveTo(toScreenSpace(Point(screenSize.width / 2, -(height / 2) + verticalOffset)))
+      )
   }
 
   case object Sky extends Belt {
@@ -85,7 +99,7 @@ object Belt {
         .getObstacles(dice, width, height, 80, 32)
         .filter(o => o.y <= height)
 
-    def getPlatforms: List[LineSegment] =
+    def getPlatforms(screenSize: Rectangle): List[LineSegment] =
       Nil
 
     def background(screenSize: Rectangle, verticalOffset: Int, toScreenSpace: Point => Point): List[SceneGraphNode] =
@@ -119,7 +133,7 @@ object Belt {
         .getObstacles(dice, width, height, 64, 32)
         .filter(o => o.y <= height)
 
-    def getPlatforms: List[LineSegment] =
+    def getPlatforms(screenSize: Rectangle): List[LineSegment] =
       Nil
 
     def background(screenSize: Rectangle, verticalOffset: Int, toScreenSpace: Point => Point): List[SceneGraphNode] =
@@ -134,7 +148,7 @@ object Belt {
         .getObstacles(dice, width, height, 64, 32)
         .filter(o => o.y <= height)
 
-    def getPlatforms: List[LineSegment] =
+    def getPlatforms(screenSize: Rectangle): List[LineSegment] =
       Nil
 
     def background(screenSize: Rectangle, verticalOffset: Int, toScreenSpace: Point => Point): List[SceneGraphNode] =

@@ -146,7 +146,8 @@ object Prefabs {
   val moon: Graphic =
     Graphic(Rectangle(0, 0, 192, 192), 1, Material.Textured(Assets.spriteSheetName))
       .withCrop(320, 0, 192, 192)
-      .withRef(96, 96)
+      .withRef(96, 0)
+      .withDepth(Depth(50))
 
   val asteroid1: Graphic =
     Graphic(Rectangle(0, 0, 17, 17), 1, Material.Textured(Assets.spriteSheetName))
