@@ -13,9 +13,9 @@ import indigoextras.geometry.LineSegment
 
 final case class Ship(health: Int, lives: Int, force: Vector2, coords: Vector2, angle: Radians, lastImpact: Seconds, lastDeath: Seconds, gravity: Double) {
   val bounds: BoundingBox =
-    BoundingBox(Vertex(0, 0), Vertex(64, 64))
+    BoundingBox(Vertex(0, 0), Vertex(32, 64))
   val boundingBox: BoundingBox =
-    bounds.moveTo(Vertex(coords.x - 32, coords.y - 32))
+    bounds.moveTo(Vertex(coords.x - (bounds.width / 2), coords.y - (bounds.height / 2)))
 
   def update(gameTime: GameTime, asteroids: List[BoundingBox], platforms: List[LineSegment], shipControl: ShipControl, screenBounds: BoundingBox, courseHeight: Int): Ship =
     if (health < 1)
