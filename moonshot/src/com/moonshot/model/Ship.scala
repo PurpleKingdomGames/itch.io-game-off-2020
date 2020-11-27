@@ -26,7 +26,7 @@ final case class Ship(health: Int, lives: Int, force: Vector2, coords: Vector2, 
           Ship.applyGravity(courseHeight) andThen
           Ship.clampTo(screenBounds, courseHeight) andThen
           Ship.updateAsteroidCollisions(gameTime, asteroids) andThen
-          Ship.updatePlatformCollisions(platforms))(this)
+          Ship.updatePlatformCollisions(gameTime, platforms))(this)
 
       if (newShip.health <= 0)
         newShip.copy(
@@ -178,7 +178,7 @@ object Ship {
     closest.distanceTo(center) < (circleBox.width * 0.5)
   }
 
-  def updatePlatformCollisions(platforms: List[LineSegment])(ship: Ship): Ship =
+  def updatePlatformCollisions(gameTime: GameTime, platforms: List[LineSegment])(ship: Ship): Ship =
     platforms
       .map(p => ship.boundingBox.lineIntersectsAt(p).map(_ => p))
       .collect { case Some(s) => Some(s) }
@@ -192,7 +192,11 @@ object Ship {
         )
 
       case Some(_) =>
-        ship.copy(health = 0)
+        ship.copy(
+          health = 0,
+          lastImpact = gameTime.running,
+          force = Vector2(-ship.force.x * 1.5, -ship.force.y * 1.5)
+        )
 
       case None =>
         ship
