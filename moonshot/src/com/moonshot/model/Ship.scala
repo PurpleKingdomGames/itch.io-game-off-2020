@@ -9,22 +9,24 @@ import com.moonshot.model.ShipControl.TurnRight
 import com.moonshot.model.ShipControl.Thrust
 import com.moonshot.model.ShipControl.ThrustLeft
 import com.moonshot.model.ShipControl.ThrustRight
+import indigoextras.geometry.LineSegment
 
 final case class Ship(health: Int, lives: Int, force: Vector2, coords: Vector2, angle: Radians, lastImpact: Seconds, lastDeath: Seconds, gravity: Double) {
+  val bounds: BoundingBox =
+    BoundingBox(Vertex(0, 0), Vertex(64, 64))
   val boundingBox: BoundingBox =
-    new BoundingBox(new Vertex(coords.x - 32, coords.y - 32), new Vertex(64, 64))
+    bounds.moveTo(Vertex(coords.x - 32, coords.y - 32))
 
-  def update(gameTime: GameTime, asteroids: List[BoundingBox], shipControl: ShipControl, screenBounds: BoundingBox, courseHeight: Int): Ship =
+  def update(gameTime: GameTime, asteroids: List[BoundingBox], platforms: List[LineSegment], shipControl: ShipControl, screenBounds: BoundingBox, courseHeight: Int): Ship =
     if (health < 1)
-      this.updateMove(gameTime, ShipControl.TurnRight)
+      Ship.updateMove(gameTime, ShipControl.TurnRight)(this)
     else {
-      val newShip = this
-        .updateMove(gameTime, shipControl)
-        .clampTo(screenBounds, courseHeight)
-        .updateAsteroidCollisions(gameTime, asteroids)
-        .copy(
-          gravity = Ship.StandardGravity * (1 - -(coords.y / courseHeight.toDouble))
-        )
+      val newShip =
+        (Ship.updateMove(gameTime, shipControl) _ andThen
+          Ship.applyGravity(courseHeight) andThen
+          Ship.clampTo(screenBounds, courseHeight) andThen
+          Ship.updateAsteroidCollisions(gameTime, asteroids) andThen
+          Ship.updatePlatformCollisions(platforms))(this)
 
       if (newShip.health <= 0)
         newShip.copy(
@@ -35,81 +37,127 @@ final case class Ship(health: Int, lives: Int, force: Vector2, coords: Vector2, 
         newShip
     }
 
-  def moveBy(x: Double, y: Double): Ship =
-    this.copy(coords = this.coords + Vector2(x, y))
+  def moveTo(position: Vector2): Ship =
+    this.copy(coords = position)
+  def moveTo(x: Double, y: Double): Ship =
+    moveTo(Vector2(x, y))
 
-  def clampTo(clampBox: BoundingBox, courseHeight: Int): Ship =
-    this.copy(coords =
-      Vector2(
-        x = Math.max(clampBox.left + 10, Math.min(coords.x, clampBox.right - 10)),
-        // y = Math.max(clampBox.top + 10, Math.min(coords.y, clampBox.bottom - 10))
-        y = Math.max(-courseHeight.toDouble, Math.min(coords.y, 0))
-      )
-    )
+  def moveBy(amount: Vector2): Ship =
+    moveTo(this.coords + amount)
+  def moveBy(x: Double, y: Double): Ship =
+    moveBy(Vector2(x, y))
+
+  def applyForce(newForce: Vector2): Ship =
+    this.copy(force = force * newForce)
+
+  def rotateTo(newAngle: Radians): Ship =
+    this.copy(angle = newAngle)
+
+  def rotateBy(amount: Radians): Ship =
+    this.copy(angle = angle + amount)
 
   def toScreenSpace: Point =
     coords.toPoint
 
-  def updateMove(gameTime: GameTime, shipControl: ShipControl): Ship = {
+}
+
+object Ship {
+
+  val StandardGravity: Double = 12.0d
+
+  val invulnerableFor: Seconds =
+    Seconds(1.5)
+
+  def initial(screenBounds: Rectangle): Ship =
+    Ship(
+      3,
+      3,
+      Vector2.zero,
+      Vector2(screenBounds.center.x.toDouble, -20),
+      Radians.zero,
+      Seconds.zero,
+      Seconds.zero,
+      StandardGravity
+    )
+
+  val inputMappings: InputMapping[ShipControl] =
+    InputMapping(
+      Combo.KeyInputs(Key.LEFT_ARROW)                                -> ShipControl.TurnLeft,
+      Combo.KeyInputs(Key.RIGHT_ARROW)                               -> ShipControl.TurnRight,
+      Combo.KeyInputs(Key.UP_ARROW)                                  -> ShipControl.Thrust,
+      Combo.KeyInputs(Key.LEFT_ARROW, Key.UP_ARROW)                  -> ShipControl.ThrustLeft,
+      Combo.KeyInputs(Key.RIGHT_ARROW, Key.UP_ARROW)                 -> ShipControl.ThrustRight,
+      Combo.KeyInputs(Key.LEFT_ARROW, Key.RIGHT_ARROW, Key.UP_ARROW) -> ShipControl.Thrust
+    )
+
+  def clampTo(clampBox: BoundingBox, courseHeight: Int)(ship: Ship): Ship =
+    ship.copy(coords =
+      Vector2(
+        x = Math.max(clampBox.left + 10, Math.min(ship.coords.x, clampBox.right - 10)),
+        y = Math.max(-courseHeight.toDouble, Math.min(ship.coords.y, 0))
+      )
+    )
+
+  def updateMove(gameTime: GameTime, shipControl: ShipControl)(ship: Ship): Ship = {
     val windResistance      = Vector2(0.95, 0.95)
     val rotationSpeed       = Radians(5 * gameTime.delta.value)
-    val angleReversed       = angle + Radians.TAUby2
+    val angleReversed       = ship.angle + Radians.TAUby2
     val acceleration        = 40 * gameTime.delta.value
-    val gravityForce        = Vector2(0, Math.min(gravity, gravity * gameTime.delta.value))
-    val nextForce           = (force + gravityForce) * windResistance
+    val gravityForce        = Vector2(0, Math.min(ship.gravity, ship.gravity * gameTime.delta.value))
+    val nextForce           = (ship.force + gravityForce) * windResistance
     val thrustForce         = Vector2(Math.sin(angleReversed.value) * acceleration, Math.cos(angleReversed.value) * acceleration)
-    val nextForceWithThrust = (force + gravityForce + thrustForce) * windResistance
+    val nextForceWithThrust = (ship.force + gravityForce + thrustForce) * windResistance
 
     shipControl match {
       case Idle =>
-        this.copy(
+        ship.copy(
           force = nextForce,
-          coords = coords + nextForce
+          coords = ship.coords + nextForce
         )
 
       case TurnLeft =>
-        this.copy(
+        ship.copy(
           force = nextForce,
-          coords = coords + nextForce,
-          angle = angle + rotationSpeed
+          coords = ship.coords + nextForce,
+          angle = ship.angle + rotationSpeed
         )
 
       case TurnRight =>
-        this.copy(
+        ship.copy(
           force = nextForce,
-          coords = coords + nextForce,
-          angle = angle - rotationSpeed
+          coords = ship.coords + nextForce,
+          angle = ship.angle - rotationSpeed
         )
 
       case Thrust =>
-        this.copy(
+        ship.copy(
           force = nextForceWithThrust,
-          coords = coords + nextForceWithThrust
+          coords = ship.coords + nextForceWithThrust
         )
 
       case ThrustLeft =>
-        this.copy(
+        ship.copy(
           force = nextForceWithThrust,
-          coords = coords + nextForceWithThrust,
-          angle = angle + rotationSpeed
+          coords = ship.coords + nextForceWithThrust,
+          angle = ship.angle + rotationSpeed
         )
 
       case ThrustRight =>
-        this.copy(
+        ship.copy(
           force = nextForceWithThrust,
-          coords = coords + nextForceWithThrust,
-          angle = angle - rotationSpeed
+          coords = ship.coords + nextForceWithThrust,
+          angle = ship.angle - rotationSpeed
         )
     }
   }
 
-  def updateAsteroidCollisions(gameTime: GameTime, asteroids: List[BoundingBox]): Ship =
-    asteroids.foldLeft(this) { (s, a) =>
-      if (gameTime.running - lastImpact > Ship.invulnerableFor && a.overlaps(s.boundingBox) && checkShipCollisionAgainstCircle(s.boundingBox, a))
+  def updateAsteroidCollisions(gameTime: GameTime, asteroids: List[BoundingBox])(ship: Ship): Ship =
+    asteroids.foldLeft(ship) { (s, a) =>
+      if (gameTime.running - ship.lastImpact > Ship.invulnerableFor && a.overlaps(s.boundingBox) && checkShipCollisionAgainstCircle(s.boundingBox, a))
         s.copy(
           health = Math.max(0, s.health - 1),
           lastImpact = gameTime.running,
-          force = Vector2(-force.x * 1.5, -force.y * 1.5)
+          force = Vector2(-ship.force.x * 1.5, -ship.force.y * 1.5)
         )
       else
         s
@@ -129,37 +177,53 @@ final case class Ship(health: Int, lives: Int, force: Vector2, coords: Vector2, 
     val closest = shipCenter + clamped
     closest.distanceTo(center) < (circleBox.width * 0.5)
   }
-}
 
-object Ship {
+  def updatePlatformCollisions(platforms: List[LineSegment])(ship: Ship): Ship =
+    platforms
+      .map(p => ship.boundingBox.lineIntersectsAt(p).map(_ => p))
+      .collect { case Some(s) => Some(s) }
+      .headOption
+      .flatten match {
+      case Some(ls) if fitToLand(ship, ls) =>
+        ship.copy(
+          force = Vector2.zero,
+          angle = Radians(0),
+          coords = ship.coords.withY(ls.start.y - (ship.bounds.height / 2))
+        )
 
-  val StandardGravity: Double = 12.0d
+      case Some(_) =>
+        ship.copy(health = 0)
 
-  val invulnerableFor: Seconds =
-    Seconds(1.5)
+      case None =>
+        ship
+    }
 
-  def initial(screenBounds: Rectangle): Ship =
-    Ship(
-      3,
-      3,
-      Vector2.zero,
-      Vector2(screenBounds.center.x.toDouble, 0), // Vector2(screenBounds.center.x.toDouble, screenBounds.center.y.toDouble) + Vector2(0, 32),
-      Radians.zero,
-      Seconds.zero,
-      Seconds.zero,
-      StandardGravity
+  def applyGravity(courseHeight: Int)(ship: Ship): Ship =
+    ship.copy(
+      gravity = Ship.StandardGravity * (1 - -(ship.coords.y / courseHeight.toDouble))
     )
 
-  val inputMappings: InputMapping[ShipControl] =
-    InputMapping(
-      Combo.KeyInputs(Key.LEFT_ARROW)                                -> ShipControl.TurnLeft,
-      Combo.KeyInputs(Key.RIGHT_ARROW)                               -> ShipControl.TurnRight,
-      Combo.KeyInputs(Key.UP_ARROW)                                  -> ShipControl.Thrust,
-      Combo.KeyInputs(Key.LEFT_ARROW, Key.UP_ARROW)                  -> ShipControl.ThrustLeft,
-      Combo.KeyInputs(Key.RIGHT_ARROW, Key.UP_ARROW)                 -> ShipControl.ThrustRight,
-      Combo.KeyInputs(Key.LEFT_ARROW, Key.RIGHT_ARROW, Key.UP_ARROW) -> ShipControl.Thrust
-    )
+  def wrapRadians(r: Radians): Radians =
+    Radians(((r.value % Radians.TAU.value) + Radians.TAU.value) % Radians.TAU.value)
 
+  def fitToLand(ship: Ship, lineSegment: LineSegment): Boolean =
+    !lineSegment.isFacingVertex(ship.boundingBox.center) && // ship is above
+      checkYaw(ship.angle) &&                               // Angle close to vertical
+      withinSpeedLimit(ship.force)
+
+  def checkYaw(angle: Radians): Boolean = {
+    val yawAllowed: Double = 1.0
+    val a                  = wrapRadians(angle + Radians(yawAllowed / 2)).value
+
+    a >= 0 && a <= yawAllowed
+  }
+
+  def withinSpeedLimit(force: Vector2): Boolean = {
+    val xLimit = 5
+    val yLimit = 5
+
+    (force.x >= -xLimit && force.x <= xLimit && force.y >= -yLimit && force.y <= yLimit)
+  }
 }
 
 sealed trait ShipControl

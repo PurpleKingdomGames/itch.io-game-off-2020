@@ -2,25 +2,47 @@ package com.moonshot.model
 
 import indigo.shared.dice.Dice
 import indigo.shared.datatypes.Vector2
+import indigoextras.geometry.LineSegment
+import indigoextras.geometry.Vertex
 
 final case class Course(belts: List[Belt]) {
   def length      = belts.length
   val height: Int = belts.map(_.height).sum
+
+  def givePlatforms: List[LineSegment] =
+    belts.zipWithIndex.flatMap {
+      case (b, i) =>
+        b.getPlatforms.map { ls =>
+          val moveBy = -(b.height * i).toDouble
+
+          LineSegment(
+            ls.start.translate(Vertex(0, moveBy)),
+            ls.end.translate(Vertex(0, moveBy))
+          )
+        }
+    }
 }
 
 sealed trait Belt {
   val height: Int = Belt.standardHeight
   def getObstacles(dice: Dice, width: Int): List[Vector2]
+  def getPlatforms: List[LineSegment]
 }
 object Belt {
   val standardHeight: Int = 2000
 
   case object Backyard extends Belt {
     def getObstacles(dice: Dice, width: Int): List[Vector2] = Nil
+
+    def getPlatforms: List[LineSegment] =
+      List(
+        LineSegment(Vertex(-100, 1), Vertex(500, 1))
+      )
   }
 
   case object Moon extends Belt {
     def getObstacles(dice: Dice, width: Int): List[Vector2] = Nil
+    def getPlatforms: List[LineSegment]                     = Nil
   }
 
   case object Sky extends Belt {
@@ -28,6 +50,11 @@ object Belt {
       Belt
         .getObstacles(dice, width, height, 80, 32)
         .filter(o => o.y <= standardHeight)
+
+    def getPlatforms: List[LineSegment] =
+      List(
+        LineSegment(Vertex(0, 0), Vertex(100, 0))
+      )
   }
 
   case object EmptySpace extends Belt {
@@ -35,6 +62,8 @@ object Belt {
       Belt
         .getObstacles(dice, width, height, 64, 32)
         .filter(o => o.y <= standardHeight)
+
+    def getPlatforms: List[LineSegment] = Nil
   }
 
   case object Asertoids extends Belt {
@@ -42,6 +71,8 @@ object Belt {
       Belt
         .getObstacles(dice, width, height, 64, 32)
         .filter(o => o.y <= standardHeight)
+
+    def getPlatforms: List[LineSegment] = Nil
   }
 
   private def getObstacles(dice: Dice, width: Int, height: Int, spaceBetweenX: Double, spaceBetweenY: Double) =

@@ -62,7 +62,13 @@ object LevelView {
   def drawCourse(course: Course, toScreenSpace: Point => Point): List[Graphic] =
     course.belts.zipWithIndex.map {
       case (belt, index) =>
-        Assets.Placeholder.redBox.moveTo(toScreenSpace(Point(0, -(belt.height * index).toInt)))
+        val box = Assets.Placeholder.redBox
+        
+        box.moveTo(
+          toScreenSpace(
+            Point(0, -((belt.height * index).toInt + box.lazyBounds.height))
+          )
+        )
     }
 
   def drawUI(model: Game, viewModel: ViewModel, screenSize: Rectangle, running: Seconds): List[SceneGraphNode] = {
@@ -126,6 +132,7 @@ object LevelView {
       ).alignRight,
       Text(screenSize.width.toString() + " x " + screenSize.height.toString, screenSize.right - 10, 50, 0, Assets.Font.fontKey).alignRight,
       Text(model.ship.coords.toPoint.toString(), screenSize.right - 10, 70, 0, Assets.Font.fontKey).alignRight,
+      Text(model.ship.angle.value.toString().take(4) + " yaw", screenSize.right - 10, 90, 0, Assets.Font.fontKey).alignRight,
       openingText,
       Text("Paused", 0, 0, 0, Assets.Font.fontKey)
         .moveTo(middle)

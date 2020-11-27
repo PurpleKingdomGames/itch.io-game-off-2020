@@ -118,6 +118,7 @@ final case class Game(
         .update(
           gameTime,
           asteroids.map(_.getBoundingBox),
+          course.givePlatforms,
           shipControl,
           BoundingBox(
             screenBounds.x.toDouble,
