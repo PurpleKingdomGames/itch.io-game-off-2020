@@ -86,9 +86,7 @@ object Belt {
         .filter(o => o.y <= height)
 
     def getPlatforms: List[LineSegment] =
-      List(
-        LineSegment(Vertex(0, 0), Vertex(100, 0))
-      )
+      Nil
 
     def background(screenSize: Rectangle, verticalOffset: Int, toScreenSpace: Point => Point): List[SceneGraphNode] =
       List(
