@@ -13,7 +13,7 @@ sealed trait Belt {
   def getObstacles(dice: Dice, width: Int): List[Vector2]
 }
 object Belt {
-  val standardHeight: Int = 500
+  val standardHeight: Int = 2000
 
   case object Backyard extends Belt {
     def getObstacles(dice: Dice, width: Int): List[Vector2] = Nil
