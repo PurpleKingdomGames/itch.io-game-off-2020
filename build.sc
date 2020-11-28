@@ -7,8 +7,8 @@ import mill.scalajslib.api._
 import $ivy.`io.indigoengine::mill-indigo:0.5.0`, millindigo._
 
 object moonshot extends ScalaJSModule with MillIndigo {
-  def scalaVersion   = "2.13.3"
-  def scalaJSVersion = "1.3.0"
+  def scalaVersion   = "2.13.4"
+  def scalaJSVersion = "1.3.1"
 
   val gameAssetsDirectory: os.Path = os.pwd / "assets"
   val showCursor: Boolean          = true
