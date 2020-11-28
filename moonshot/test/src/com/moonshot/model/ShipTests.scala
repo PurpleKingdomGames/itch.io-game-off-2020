@@ -14,6 +14,9 @@ object ShipTests extends TestSuite {
 
       "Ship" - {
 
+        val gameTime: GameTime =
+          GameTime.zero
+
         val ship: Ship =
           Ship
             .initial(Rectangle(0, 0, 500, 500))
@@ -32,7 +35,7 @@ object ShipTests extends TestSuite {
               ship.moveTo(100, 100)
 
             val actual =
-              Ship.updatePlatformCollisions(List(platform))(s)
+              Ship.updatePlatformCollisions(gameTime, List(platform))(s)
 
             val expected = s
 
@@ -46,7 +49,7 @@ object ShipTests extends TestSuite {
               ship.moveTo(100, -100)
 
             val actual =
-              Ship.updatePlatformCollisions(List(platform))(s)
+              Ship.updatePlatformCollisions(gameTime, List(platform))(s)
 
             val expected = s
 
@@ -60,7 +63,7 @@ object ShipTests extends TestSuite {
               ship.moveTo(100, -1 - (ship.boundingBox.height / 2))
 
             val actual =
-              Ship.updatePlatformCollisions(List(platform))(s)
+              Ship.updatePlatformCollisions(gameTime, List(platform))(s)
 
             val expected = s
 
@@ -73,7 +76,7 @@ object ShipTests extends TestSuite {
               ship.moveTo(100, -5)
 
             val actual =
-              Ship.updatePlatformCollisions(List(platform))(s)
+              Ship.updatePlatformCollisions(gameTime, List(platform))(s)
 
             val expected = s.copy(health = 0)
 
