@@ -19,10 +19,10 @@ final case class Ship(health: Int, lives: Int, force: Vector2, coords: Vector2, 
 
   def update(gameTime: GameTime, asteroids: List[BoundingBox], platforms: List[LineSegment], shipControl: ShipControl, screenBounds: BoundingBox, courseHeight: Int): Ship =
     if (health < 1)
-      Ship.updateMove(gameTime, ShipControl.TurnRight)(this)
+      Ship.updateMove(gameTime, ShipControl.TurnRight, courseHeight)(this)
     else {
       val newShip =
-        (Ship.updateMove(gameTime, shipControl) _ andThen
+        (Ship.updateMove(gameTime, shipControl, courseHeight) _ andThen
           Ship.applyGravity(courseHeight) andThen
           Ship.clampTo(screenBounds, courseHeight) andThen
           Ship.updateAsteroidCollisions(gameTime, asteroids) andThen
@@ -98,8 +98,9 @@ object Ship {
       )
     )
 
-  def updateMove(gameTime: GameTime, shipControl: ShipControl)(ship: Ship): Ship = {
-    val windResistance      = Vector2(0.95, 0.95)
+  def updateMove(gameTime: GameTime, shipControl: ShipControl, courseHeight: Int)(ship: Ship): Ship = {
+    val progress: Double    = 1 * -(ship.coords.y / courseHeight.toDouble)
+    val windResistance      = Vector2((progress / 5) + 0.8, (progress / 5) + 0.8) // 1 at the top, 0.8 at the bottom.
     val rotationSpeed       = Radians(5 * gameTime.delta.value)
     val angleReversed       = ship.angle + Radians.TAUby2
     val acceleration        = 40 * gameTime.delta.value
@@ -108,24 +109,26 @@ object Ship {
     val thrustForce         = Vector2(Math.sin(angleReversed.value) * acceleration, Math.cos(angleReversed.value) * acceleration)
     val nextForceWithThrust = (ship.force + gravityForce + thrustForce) * windResistance
 
+    val adjustForce = if(ship.coords.y == courseHeight && nextForce.y < 0) nextForce * Vector2(1, 0) else nextForce
+
     shipControl match {
       case Idle =>
         ship.copy(
-          force = nextForce,
-          coords = ship.coords + nextForce
+          force = adjustForce,
+          coords = ship.coords + adjustForce
         )
 
       case TurnLeft =>
         ship.copy(
-          force = nextForce,
-          coords = ship.coords + nextForce,
+          force = adjustForce,
+          coords = ship.coords + adjustForce,
           angle = ship.angle + rotationSpeed
         )
 
       case TurnRight =>
         ship.copy(
-          force = nextForce,
-          coords = ship.coords + nextForce,
+          force = adjustForce,
+          coords = ship.coords + adjustForce,
           angle = ship.angle - rotationSpeed
         )
 
