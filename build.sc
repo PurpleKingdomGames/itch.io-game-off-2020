@@ -66,13 +66,14 @@ object moonshot extends ScalaJSModule with MillIndigo {
   object test extends Tests {
     def ivyDeps =
       Agg(
-        ivy"com.lihaoyi::utest::0.7.4",
-        ivy"org.scalacheck::scalacheck::1.14.3"
+        ivy"org.scalameta::munit::0.7.19"
       )
 
-    def testFrameworks = Seq("utest.runner.Framework")
+    def testFrameworks = Seq("munit.Framework")
 
     def scalacOptions = ScalacOptions.scala213Test
+
+    override def moduleKind = T(mill.scalajslib.api.ModuleKind.CommonJSModule)
   }
 
 }

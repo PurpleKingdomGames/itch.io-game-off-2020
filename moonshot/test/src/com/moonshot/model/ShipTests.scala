@@ -2,145 +2,127 @@ package com.moonshot.model
 
 import indigo._
 
-import utest._
 import indigo.shared.time.GameTime.FPS
 import indigoextras.geometry.LineSegment
 import indigoextras.geometry.Vertex
 
-object ShipTests extends TestSuite {
+class ShipTests extends munit.FunSuite {
 
-  val tests: Tests =
-    Tests {
+  val gameTime: GameTime =
+    GameTime.zero
 
-      "Ship" - {
+  val ship: Ship =
+    Ship
+      .initial(Rectangle(0, 0, 500, 500))
+      .rotateBy(Radians.TAUby2)
+      .applyForce(Vector2(10, 10))
 
-        val gameTime: GameTime =
-          GameTime.zero
+  val platform: LineSegment =
+    LineSegment(Vertex(10, 1), Vertex(490, 1))
 
-        val ship: Ship =
-          Ship
-            .initial(Rectangle(0, 0, 500, 500))
-            .rotateBy(Radians.TAUby2)
-            .applyForce(Vector2(10, 10))
+  // negative is above the line!
+  test("no collision (below)") {
 
-        "platform collisions" - {
+    val s: Ship =
+      ship.moveTo(100, 100)
 
-          val platform: LineSegment =
-            LineSegment(Vertex(10, 1), Vertex(490, 1))
+    val actual =
+      Ship.updatePlatformCollisions(gameTime, List(platform))(s)
 
-          // negative is above the line!
-          "no collision (below)" - {
+    val expected = s
 
-            val s: Ship =
-              ship.moveTo(100, 100)
+    assertEquals(actual, expected)
+    assertEquals(!platform.isFacingVertex(s.boundingBox.center), false)
+  }
 
-            val actual =
-              Ship.updatePlatformCollisions(gameTime, List(platform))(s)
+  test("no collision (above)") {
 
-            val expected = s
+    val s: Ship =
+      ship.moveTo(100, -100)
 
-            actual ==> expected
-            !platform.isFacingVertex(s.boundingBox.center) ==> false
-          }
+    val actual =
+      Ship.updatePlatformCollisions(gameTime, List(platform))(s)
 
-          "no collision (above)" - {
+    val expected = s
 
-            val s: Ship =
-              ship.moveTo(100, -100)
+    assertEquals(actual, expected)
+    assertEquals(!platform.isFacingVertex(s.boundingBox.center), true)
+  }
 
-            val actual =
-              Ship.updatePlatformCollisions(gameTime, List(platform))(s)
+  test("landing") {
 
-            val expected = s
+    val s: Ship =
+      ship.moveTo(100, -1 - (ship.boundingBox.height / 2))
 
-            actual ==> expected
-            !platform.isFacingVertex(s.boundingBox.center) ==> true
-          }
+    val actual =
+      Ship.updatePlatformCollisions(gameTime, List(platform))(s)
 
-          "landing" - {
+    val expected = s
 
-            val s: Ship =
-              ship.moveTo(100, -1 - (ship.boundingBox.height / 2))
+    assertEquals(actual, expected)
+  }
 
-            val actual =
-              Ship.updatePlatformCollisions(gameTime, List(platform))(s)
+  test("crash landing") {
 
-            val expected = s
+    val s: Ship =
+      ship.moveTo(100, -5)
 
-            actual ==> expected
-          }
+    val actual =
+      Ship.updatePlatformCollisions(gameTime, List(platform))(s)
 
-          "crash landing" - {
+    val expected = s.copy(health = 0)
 
-            val s: Ship =
-              ship.moveTo(100, -5)
+    assertEquals(actual, expected)
+  }
 
-            val actual =
-              Ship.updatePlatformCollisions(gameTime, List(platform))(s)
+  test("Real case") {
+    val s =
+      Ship(3, 3, Vector2(0, 0.1938), Vector2(320, -19.8062), Radians(0), Seconds(0), Seconds(0), 11.9702907)
 
-            val expected = s.copy(health = 0)
+    val ls = LineSegment(start = Vertex(-100, 1), end = Vertex(500, 1))
 
-            actual ==> expected
-          }
+    assertEquals(Ship.fitToLand(s, ls), true)
+  }
 
-          "Real case" - {
-            val s =
-              Ship(3, 3, Vector2(0, 0.1938), Vector2(320, -19.8062), Radians(0), Seconds(0), Seconds(0), 11.9702907)
+  test("Real case 2") {
+    val s =
+      Ship(3, 3, Vector2(0, 0.1938), Vector2(50, -2000), Radians(0), Seconds(0), Seconds(0), 11.9702907)
 
-            val ls = LineSegment(start = Vertex(-100, 1), end = Vertex(500, 1))
+    val ls = LineSegment(start = Vertex(0, -2000), end = Vertex(100, -2000))
 
-            Ship.fitToLand(s, ls) ==> true
-          }
+    assertEquals(Ship.fitToLand(s, ls), true)
+  }
 
-          "Real case 2" - {
-            val s =
-              Ship(3, 3, Vector2(0, 0.1938), Vector2(50, -2000), Radians(0), Seconds(0), Seconds(0), 11.9702907)
+  def doubleCloseEnough(d1: Double, d2: Double): Boolean =
+    d1 - 0.001 < d2 && d1 + 0.001 > d2
 
-            val ls = LineSegment(start = Vertex(0, -2000), end = Vertex(100, -2000))
+  test("wrap radians") {
+    assertEquals(doubleCloseEnough(Ship.wrapRadians(Radians(0.0)).value, 0.0), true)
+    assertEquals(doubleCloseEnough(Ship.wrapRadians(Radians(0.1)).value, 0.1), true)
+    assertEquals(doubleCloseEnough(Ship.wrapRadians(Radians(-0.1)).value, Radians.TAU.value - 0.1), true)
+    assertEquals(doubleCloseEnough(Ship.wrapRadians(Radians.TAU + Radians.TAUby4).value, Radians.TAUby4.value), true)
+    assertEquals(doubleCloseEnough(Ship.wrapRadians(Radians.TAU - Radians.TAUby4).value, Radians.TAUby4.value * 3), true)
+  }
 
-            Ship.fitToLand(s, ls) ==> true
-          }
+  test("check yaw") {
+    assertEquals(Ship.checkYaw(Radians(0)), true)
+    assertEquals(Ship.checkYaw(Radians(-0.4)), true)
+    assertEquals(Ship.checkYaw(Radians(0.4)), true)
+    assertEquals(Ship.checkYaw(Radians(-4.0)), false)
+    assertEquals(Ship.checkYaw(Radians(4.0)), false)
+    assertEquals(Ship.checkYaw(Radians.TAUby2), false)
+  }
 
-        }
-
-      }
-
-      "Utils" - {
-
-        def doubleCloseEnough(d1: Double, d2: Double): Boolean =
-          d1 - 0.001 < d2 && d1 + 0.001 > d2
-
-        "wrap radians" - {
-          doubleCloseEnough(Ship.wrapRadians(Radians(0.0)).value, 0.0) ==> true
-          doubleCloseEnough(Ship.wrapRadians(Radians(0.1)).value, 0.1) ==> true
-          doubleCloseEnough(Ship.wrapRadians(Radians(-0.1)).value, Radians.TAU.value - 0.1) ==> true
-          doubleCloseEnough(Ship.wrapRadians(Radians.TAU + Radians.TAUby4).value, Radians.TAUby4.value) ==> true
-          doubleCloseEnough(Ship.wrapRadians(Radians.TAU - Radians.TAUby4).value, Radians.TAUby4.value * 3) ==> true
-        }
-
-        "check yaw" - {
-          Ship.checkYaw(Radians(0)) ==> true
-          Ship.checkYaw(Radians(-0.4)) ==> true
-          Ship.checkYaw(Radians(0.4)) ==> true
-          Ship.checkYaw(Radians(-4.0)) ==> false
-          Ship.checkYaw(Radians(4.0)) ==> false
-          Ship.checkYaw(Radians.TAUby2) ==> false
-        }
-
-        "check speed limit" - {
-          Ship.withinSpeedLimit(Vector2(0, 0)) ==> true
-          Ship.withinSpeedLimit(Vector2(2, 0)) ==> true
-          Ship.withinSpeedLimit(Vector2(-2, 0)) ==> true
-          Ship.withinSpeedLimit(Vector2(10, 0)) ==> false
-          Ship.withinSpeedLimit(Vector2(-10, 0)) ==> false
-          Ship.withinSpeedLimit(Vector2(0, 2)) ==> true
-          Ship.withinSpeedLimit(Vector2(0, -2)) ==> true
-          Ship.withinSpeedLimit(Vector2(0, 10)) ==> false
-          Ship.withinSpeedLimit(Vector2(0, -10)) ==> false
-        }
-
-      }
-
-    }
+  test("check speed limit") {
+    assertEquals(Ship.withinSpeedLimit(Vector2(0, 0)), true)
+    assertEquals(Ship.withinSpeedLimit(Vector2(2, 0)), true)
+    assertEquals(Ship.withinSpeedLimit(Vector2(-2, 0)), true)
+    assertEquals(Ship.withinSpeedLimit(Vector2(10, 0)), false)
+    assertEquals(Ship.withinSpeedLimit(Vector2(-10, 0)), false)
+    assertEquals(Ship.withinSpeedLimit(Vector2(0, 2)), true)
+    assertEquals(Ship.withinSpeedLimit(Vector2(0, -2)), true)
+    assertEquals(Ship.withinSpeedLimit(Vector2(0, 10)), false)
+    assertEquals(Ship.withinSpeedLimit(Vector2(0, -10)), false)
+  }
 
 }
