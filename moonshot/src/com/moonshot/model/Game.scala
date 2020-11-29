@@ -37,8 +37,8 @@ final case class Game(
 
     case FrameTick =>
       gameState match {
-        // case GameState.GameRunning if verticalOffset >= targetVerticalOffset =>
-        //   Outcome(this.copy(gameState = GameState.GameWin))
+        case GameState.GameRunning if ship.hasLandedOnMoon =>
+          Outcome(this.copy(gameState = GameState.GameWin))
 
         case GameState.GameRunning if timeRemainingInSeconds.toDouble <= 0 =>
           Outcome(this.copy(gameState = GameState.GameLoss))
@@ -111,6 +111,9 @@ final case class Game(
   //     )
   //   }
 
+  def isInMoonBelt: Boolean =
+    ship.coords.y > -course.height && ship.coords.y < -(course.height - Belt.Moon.height)
+
   def updateRunningGame(gameTime: GameTime /*, dice: Dice*/, shipControl: ShipControl) = {
     // val verticalSpeed = Math.max(initialSpeed, targetVerticalSpeed * (verticalOffset / targetVerticalOffset))
     // val verticalDelta = -(Math.max(-3, Math.min(-1, ship.force.y)) * verticalSpeed) * gameTime.delta.value
@@ -127,7 +130,8 @@ final case class Game(
             screenBounds.width.toDouble,
             screenBounds.height.toDouble
           ),
-          course.height
+          course.height,
+          isInMoonBelt
         )
 
     Outcome(
@@ -177,39 +181,60 @@ object Game {
 
   def initial(dice: Dice, screenBounds: Rectangle): Game = {
     val course =
-      Course(List(Belt.Backyard, Belt.Sky, Belt.EmptySpace, Belt.Moon))
+      Course(List(Belt.Backyard, Belt.Sky, Belt.EmptySpace, Belt.Asteroids(), Belt.Moon))
+
+    def createAsteroids: List[Asteroid] = {
+      val res = course.belts
+        .foldLeft(BuildingAsteroids.empty) {
+          case (acc, belt) =>
+            belt match {
+              case b @ Belt.Asteroids() =>
+                acc.copy(
+                  asteroids = b.getAsteroids(dice, screenBounds.width, acc.heightSoFar),
+                  heightSoFar = acc.heightSoFar + b.height
+                )
+
+              case b =>
+                acc.copy(heightSoFar = acc.heightSoFar + b.height)
+            }
+        }
+
+      res.asteroids
+    }
+    // .foldLeft(List.empty[(Belt, Int)]) { case (l, b) =>
+    //   l.headOption match {
+    //     case Some((b1, height)) =>
+    //       (b, height + b1.height) :: l
+
+    //     case None =>
+    //       List((b, 0))
+    //   }
+    // }
+    // .map(b => (b._1.getObstacles(dice, screenBounds.width), b._2))
+    // .flatMap(t =>
+    //   t._1
+    //     .map(o =>
+    //       Asteroid.initial
+    //         .moveTo(o.x, o.y - t._2)
+    //         .withRotation(dice.rollDouble * 360)
+    //         .withRotationSpeed(dice.rollDouble)
+    //         .withType(
+    //           dice.roll(4) match {
+    //             case 1 => AsteroidType.Small
+    //             case 2 => AsteroidType.Medium
+    //             case 3 => AsteroidType.Big
+    //             case _ => AsteroidType.ThatsNoMoon
+    //           }
+    //         )
+    //     )
+    // )
 
     Game(
       LevelType.Lander,
       GameState.GameRunning,
       Ship.initial(screenBounds),
       maxTimeLimit,
-      course.belts
-        .foldLeft(List[(Belt, Int)]()) { (l, b) =>
-          l.headOption match {
-            case Some((b1, height)) =>
-              (b, height + b1.height) :: l
-            case None => List((b, 0))
-          }
-        }
-        .map(b => (b._1.getObstacles(dice, screenBounds.width), b._2))
-        .flatMap(t =>
-          t._1
-            .map(o =>
-              Asteroid.initial
-                .moveTo(o.x, o.y - t._2)
-                .withRotation(dice.rollDouble * 360)
-                .withRotationSpeed(dice.rollDouble)
-                .withType(
-                  dice.roll(4) match {
-                    case 1 => AsteroidType.Small
-                    case 2 => AsteroidType.Medium
-                    case 3 => AsteroidType.Big
-                    case _ => AsteroidType.ThatsNoMoon
-                  }
-                )
-            )
-        ),
+      createAsteroids,
       // initialSpeed,
       // targetVerticalSpeed,
       // 0,
@@ -220,6 +245,12 @@ object Game {
       Camera.initial,
       debugMode = false
     )
+  }
+
+  final case class BuildingAsteroids(asteroids: List[Asteroid], heightSoFar: Int)
+  object BuildingAsteroids {
+    def empty: BuildingAsteroids =
+      BuildingAsteroids(Nil, 0)
   }
 }
 

@@ -27,7 +27,7 @@ class ShipTests extends munit.FunSuite {
       ship.moveTo(100, 100)
 
     val actual =
-      Ship.updatePlatformCollisions(gameTime, List(platform))(s)
+      Ship.updatePlatformCollisions(gameTime, List(platform), false)(s)
 
     val expected = s
 
@@ -41,7 +41,7 @@ class ShipTests extends munit.FunSuite {
       ship.moveTo(100, -100)
 
     val actual =
-      Ship.updatePlatformCollisions(gameTime, List(platform))(s)
+      Ship.updatePlatformCollisions(gameTime, List(platform), false)(s)
 
     val expected = s
 
@@ -55,10 +55,26 @@ class ShipTests extends munit.FunSuite {
       ship.moveTo(100, -1 - (ship.boundingBox.height / 2))
 
     val actual =
-      Ship.updatePlatformCollisions(gameTime, List(platform))(s)
+      Ship.updatePlatformCollisions(gameTime, List(platform), false)(s)
 
     val expected = s
 
+    assertEquals(actual, expected)
+  }
+
+  test("landing on the moon") {
+
+    val s: Ship =
+      ship
+        .moveTo(100, -31)
+        .rotateTo(Radians.zero)
+
+    val actual =
+      Ship.updatePlatformCollisions(gameTime, List(platform), true)(s)
+
+    val expected = s.copy(hasLandedOnMoon = true)
+
+    assert(Ship.fitToLand(s, platform))
     assertEquals(actual, expected)
   }
 
@@ -68,7 +84,7 @@ class ShipTests extends munit.FunSuite {
       ship.moveTo(100, -5)
 
     val actual =
-      Ship.updatePlatformCollisions(gameTime, List(platform))(s)
+      Ship.updatePlatformCollisions(gameTime, List(platform), false)(s)
 
     val expected = s.copy(health = 0)
 
@@ -77,7 +93,7 @@ class ShipTests extends munit.FunSuite {
 
   test("Real case") {
     val s =
-      Ship(3, 3, Vector2(0, 0.1938), Vector2(320, -19.8062), Radians(0), Seconds(0), Seconds(0), 11.9702907)
+      Ship(3, 3, Vector2(0, 0.1938), Vector2(320, -19.8062), Radians(0), Seconds(0), Seconds(0), 11.9702907, false)
 
     val ls = LineSegment(start = Vertex(-100, 1), end = Vertex(500, 1))
 
@@ -86,7 +102,7 @@ class ShipTests extends munit.FunSuite {
 
   test("Real case 2") {
     val s =
-      Ship(3, 3, Vector2(0, 0.1938), Vector2(50, -2000), Radians(0), Seconds(0), Seconds(0), 11.9702907)
+      Ship(3, 3, Vector2(0, 0.1938), Vector2(50, -2000), Radians(0), Seconds(0), Seconds(0), 11.9702907, false)
 
     val ls = LineSegment(start = Vertex(0, -2000), end = Vertex(100, -2000))
 

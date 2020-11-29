@@ -11,13 +11,13 @@ import com.moonshot.model.ShipControl.ThrustLeft
 import com.moonshot.model.ShipControl.ThrustRight
 import indigoextras.geometry.LineSegment
 
-final case class Ship(health: Int, lives: Int, force: Vector2, coords: Vector2, angle: Radians, lastImpact: Seconds, lastDeath: Seconds, gravity: Double) {
+final case class Ship(health: Int, lives: Int, force: Vector2, coords: Vector2, angle: Radians, lastImpact: Seconds, lastDeath: Seconds, gravity: Double, hasLandedOnMoon: Boolean) {
   val bounds: BoundingBox =
     BoundingBox(Vertex(0, 0), Vertex(32, 64))
   val boundingBox: BoundingBox =
     bounds.moveTo(Vertex(coords.x - (bounds.width / 2), coords.y - (bounds.height / 2)))
 
-  def update(gameTime: GameTime, asteroids: List[BoundingBox], platforms: List[LineSegment], shipControl: ShipControl, screenBounds: BoundingBox, courseHeight: Int): Ship =
+  def update(gameTime: GameTime, asteroids: List[BoundingBox], platforms: List[LineSegment], shipControl: ShipControl, screenBounds: BoundingBox, courseHeight: Int, isInMoonBelt: Boolean): Ship =
     if (health < 1)
       Ship.updateMove(gameTime, ShipControl.TurnRight, courseHeight)(this)
     else {
@@ -26,7 +26,7 @@ final case class Ship(health: Int, lives: Int, force: Vector2, coords: Vector2, 
           Ship.applyGravity(courseHeight) andThen
           Ship.clampTo(screenBounds, courseHeight) andThen
           Ship.updateAsteroidCollisions(gameTime, asteroids) andThen
-          Ship.updatePlatformCollisions(gameTime, platforms))(this)
+          Ship.updatePlatformCollisions(gameTime, platforms, isInMoonBelt))(this)
 
       if (newShip.health <= 0)
         newShip.copy(
@@ -77,7 +77,8 @@ object Ship {
       Radians.zero,
       Seconds.zero,
       Seconds.zero,
-      StandardGravity
+      StandardGravity,
+      false
     )
 
   val inputMappings: InputMapping[ShipControl] =
@@ -182,7 +183,7 @@ object Ship {
     closest.distanceTo(center) < (circleBox.width * 0.5)
   }
 
-  def updatePlatformCollisions(gameTime: GameTime, platforms: List[LineSegment])(ship: Ship): Ship =
+  def updatePlatformCollisions(gameTime: GameTime, platforms: List[LineSegment], isInMoonBelt: Boolean)(ship: Ship): Ship =
     platforms
       .map(p => ship.boundingBox.lineIntersectsAt(p).map(_ => p))
       .collect { case Some(s) => Some(s) }
@@ -192,7 +193,8 @@ object Ship {
         ship.copy(
           force = Vector2.zero,
           angle = Radians(0),
-          coords = ship.coords.withY(ls.start.y - (ship.bounds.height / 2))
+          coords = ship.coords.withY(ls.start.y - (ship.bounds.height / 2)),
+          hasLandedOnMoon = isInMoonBelt
         )
 
       case Some(_) =>

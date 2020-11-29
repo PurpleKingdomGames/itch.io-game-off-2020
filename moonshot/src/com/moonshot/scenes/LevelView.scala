@@ -181,7 +181,8 @@ object LevelView {
           ).alignRight,
           Text(screenSize.width.toString() + " x " + screenSize.height.toString, screenSize.right - 10, 50, 0, Assets.Font.fontKey).alignRight,
           Text(model.ship.coords.toPoint.toString(), screenSize.right - 10, 70, 0, Assets.Font.fontKey).alignRight,
-          Text(model.ship.angle.value.toString().take(4) + " yaw", screenSize.right - 10, 90, 0, Assets.Font.fontKey).alignRight
+          Text(model.ship.angle.value.toString().take(4) + " yaw", screenSize.right - 10, 90, 0, Assets.Font.fontKey).alignRight,
+          Text("In moon belt: " + model.isInMoonBelt.toString(), screenSize.right - 10, 110, 0, Assets.Font.fontKey).alignRight
         )
       else Nil
 
