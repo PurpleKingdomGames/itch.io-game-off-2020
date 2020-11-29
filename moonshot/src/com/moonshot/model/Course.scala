@@ -129,7 +129,7 @@ object Belt {
   }
 
   final case class Asteroids(count: Int) extends Belt {
-    val height: Int = 500
+    val height: Int = 1500
 
     def getAsteroids(dice: Dice, width: Int, verticalOffset: Int): List[Asteroid] =
       Asteroids.generate(dice, width, height, 64, 64, verticalOffset)
