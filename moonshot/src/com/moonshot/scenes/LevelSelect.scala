@@ -68,13 +68,30 @@ object LevelSelect extends Scene[StartUpData, Model, ViewModel] {
         Outcome(viewModel)
     }
 
-  def present(context: FrameContext[StartUpData], model: LevelType, viewModel: ViewInfo): SceneUpdateFragment =
+  def present(context: FrameContext[StartUpData], model: LevelType, viewModel: ViewInfo): SceneUpdateFragment = {
+    val middle = viewModel.giveScreenBounds.center
     SceneUpdateFragment(
-      Text("Choose a level type:", 10, 10, 0, Assets.Font.fontKey),
-      Text(model.renderLander, 10, 30, 0, Assets.Font.fontKey),
-      Text(model.renderSlalom, 10, 50, 0, Assets.Font.fontKey),
-      Text(model.renderGauntlet, 10, 70, 0, Assets.Font.fontKey).withAlpha(0.5),
-      Text("Hit enter to continue", 10, 90, 0, Assets.Font.fontKey)
+      Text("Moonshot", 0, 0, 0, Assets.Font.fontKey)
+        .moveTo(middle)
+        .moveBy(0, -90)
+        .withTint(0, 0, 125)
+        .alignCenter,
+      Text("Left/Right arrows rotate", 0, 0, 0, Assets.Font.fontKey)
+        .moveTo(middle)
+        .moveBy(0, -60)
+        .alignCenter,
+      Text("Up Arrow for Thrust", 0, 0, 0, Assets.Font.fontKey)
+        .moveTo(middle)
+        .moveBy(0, -30)
+        .alignCenter,
+      Text("Avoid Asteroids and land on the moon!", 0, 0, 0, Assets.Font.fontKey)
+        .moveTo(middle)
+        .moveBy(0, 0)
+        .alignCenter,
+      Text("Hit enter to begin", 0, 0, 0, Assets.Font.fontKey)
+        .moveTo(middle)
+        .moveBy(0, 60)
+        .alignCenter
     ).withMagnification(viewModel.magnification)
-
+  }
 }
