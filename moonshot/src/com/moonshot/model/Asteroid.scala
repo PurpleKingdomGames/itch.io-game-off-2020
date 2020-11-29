@@ -4,7 +4,9 @@ import indigo._
 import indigoextras.geometry.BoundingBox
 import indigoextras.geometry.Vertex
 
-final case class Asteroid(coords: Vector2, _type: AsteroidType, startRotation: Double, rotationSpeed: Double) {
+final case class Asteroid(coords: Vector2, orbit: Vector2, _type: AsteroidType, rotation: Radians, rotationSpeed: Radians) {
+  val distance = coords.distanceTo(orbit)
+
   val boundingBox = {
     val vertex = _type match {
       case AsteroidType.Small =>
@@ -20,6 +22,15 @@ final case class Asteroid(coords: Vector2, _type: AsteroidType, startRotation: D
     BoundingBox(Vertex.fromVector(coords) - (vertex * 0.5), vertex)
   }
 
+  def update: Asteroid =
+    this.copy(
+      rotation = rotation + rotationSpeed,
+      coords = Vector2(
+        x = Math.sin(rotation.value) * distance + orbit.x,
+        y = Math.cos(rotation.value) * distance + orbit.y
+      )
+    )
+
   def getBoundingBox = boundingBox
 
   def moveTo(x: Double, y: Double) =
@@ -28,19 +39,14 @@ final case class Asteroid(coords: Vector2, _type: AsteroidType, startRotation: D
   def moveBy(x: Double, y: Double) =
     this.copy(coords = this.coords + Vector2(x, y))
 
-  def withRotation(rotation: Double) =
-    this.copy(startRotation = rotation)
+  def withRotation(rotation: Radians) =
+    this.copy(rotation = rotation)
 
-  def withRotationSpeed(speed: Double) =
+  def withRotationSpeed(speed: Radians) =
     this.copy(rotationSpeed = speed)
 
   def withType(_type: AsteroidType) =
     this.copy(_type = _type)
-}
-
-object Asteroid {
-  val initial =
-    Asteroid(Vector2.zero, AsteroidType.Small, 0, 0)
 }
 
 sealed trait AsteroidType

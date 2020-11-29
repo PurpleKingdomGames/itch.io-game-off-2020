@@ -71,6 +71,7 @@ object LevelView {
                   Prefabs.asteroid4
               })
                 .moveTo(toScreenSpace(a.coords.toPoint))
+                .rotateBy(a.rotation)
             )
         )
         .addUiLayerNodes(drawUI(model /*, viewModel*/, viewModel.viewInfo.giveScreenBounds, running))

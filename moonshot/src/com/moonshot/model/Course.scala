@@ -5,6 +5,7 @@ import indigoextras.geometry.Vertex
 import com.moonshot.core.Prefabs
 import indigo._
 import com.moonshot.core.Assets
+import scala.annotation.nowarn
 
 final case class Course(belts: List[Belt]) {
   def length      = belts.length
@@ -128,11 +129,11 @@ object Belt {
       Nil
   }
 
-  final case class Asteroids() extends Belt {
-    val height: Int = 1000
+  final case class Asteroids(count: Int) extends Belt {
+    val height: Int = 500
 
     def getAsteroids(dice: Dice, width: Int, verticalOffset: Int): List[Asteroid] =
-      Asteroids.generate(dice, width, height, 64, 32, verticalOffset)
+      Asteroids.generate(dice, width, height, 10, 10, verticalOffset, count)
 
     def getPlatforms(screenSize: Rectangle): List[LineSegment] =
       Nil
@@ -143,77 +144,117 @@ object Belt {
 
   object Asteroids {
 
-    def generate(dice: Dice, width: Int, height: Int, spaceBetweenX: Double, spaceBetweenY: Double, verticalOffset: Int): List[Asteroid] =
-      filterCollisions(
-        spaceBetweenX,
-        spaceBetweenY,
-        buildObstacleRows(
-          dice,
-          height,
-          spaceBetweenX,
-          spaceBetweenY,
-          List
-            .range(0, (width.doubleValue / spaceBetweenX).toInt)
-            .map { i =>
-              val min = i * spaceBetweenX * 0.9
-              val max = i * spaceBetweenX
-              new Vector2((dice.rollDouble * (max - min)) + min, 0)
-            },
-          Nil
-        ),
-        Nil
-      )
-        .filter(o => o.y <= height)
-        .map(o =>
-          Asteroid.initial
-            .moveTo(o.x, o.y - verticalOffset)
-            .withRotation(dice.rollDouble * 360)
-            .withRotationSpeed(dice.rollDouble)
-            .withType(
-              dice.roll(4) match {
-                case 1 => AsteroidType.Small
-                case 2 => AsteroidType.Medium
-                case 3 => AsteroidType.Big
-                case _ => AsteroidType.ThatsNoMoon
-              }
-            )
-        )
-
-    private def buildObstacleRows(dice: Dice, height: Int, spaceBetweenX: Double, spaceBetweenY: Double, lastRow: List[Vector2], currentObstacles: List[Vector2]): List[Vector2] = {
-      val currentRow =
-        lastRow.map { o =>
-          val startPoint = new Vector2(o.x, o.y - spaceBetweenY * 2)
-          val a          = dice.rollDouble * 2 * Math.PI
-          val r          = spaceBetweenX * Math.sqrt(dice.rollDouble)
-
-          val x = r * Math.cos(a)
-          val y = r * Math.sin(a)
-
-          new Vector2(startPoint.x + x, startPoint.y - y)
-        }
-
-      val newObstacles = currentRow ++ currentObstacles
-      if (newObstacles.map(_.y).min > -height)
-        buildObstacleRows(dice, height, spaceBetweenX, spaceBetweenY, currentRow, newObstacles)
-      else
-        newObstacles.filter(o => o.y > -height)
-    }
-
-    private def filterCollisions(spaceBetweenX: Double, spaceBetweenY: Double, obstacles: List[Vector2], checkedObstacles: List[Vector2]): List[Vector2] =
-      obstacles.headOption match {
-        case Some(o) =>
-          filterCollisions(
-            spaceBetweenX,
-            spaceBetweenY,
-            obstacles
-              .filter(o2 =>
-                o2 != o &&
-                  Math.max(o2.x, o.x) - Math.min(o2.x, o.x) >= spaceBetweenX &&
-                  Math.max(o2.y, o.y) - Math.min(o2.y, o.y) >= spaceBetweenY
-              ),
-            o :: checkedObstacles
+    @nowarn def generate(dice: Dice, width: Int, height: Int, spaceBetweenX: Double, spaceBetweenY: Double, verticalOffset: Int, count: Int): List[Asteroid] =
+      (0 to count).toList.map { i =>
+        val position =
+          Vector2(
+            x = dice.rollDouble * ((width - 100) + 50),
+            y = (dice.rollDouble * height) + -verticalOffset
           )
-        case None => checkedObstacles
+
+        val orbit =
+          position.translate(
+            Vector2(
+              x = (dice.rollDouble * 200) - 100,
+              y = (dice.rollDouble * 200) - 100
+            )
+          )
+
+        Asteroid(
+          coords = position,
+          orbit = orbit,
+          _type = dice.roll(4) match {
+            case 1 => AsteroidType.Small
+            case 2 => AsteroidType.Medium
+            case 3 => AsteroidType.Big
+            case _ => AsteroidType.ThatsNoMoon
+          },
+          rotation = Radians(dice.rollDouble) * Radians.TAU,
+          rotationSpeed = Radians((dice.rollDouble * 0.1) - 0.05)
+        )
       }
+
+    // @nowarn
+    // def generate(dice: Dice, width: Int, height: Int, spaceBetweenX: Double, spaceBetweenY: Double, verticalOffset: Int, density: Double): List[Asteroid] =
+    //   filterCollisions(
+    //     spaceBetweenX,
+    //     spaceBetweenY,
+    //     buildObstacleRows(
+    //       dice,
+    //       height,
+    //       spaceBetweenX,
+    //       spaceBetweenY,
+    //       List
+    //         .range(0, (width.doubleValue / spaceBetweenX).toInt)
+    //         .map { i =>
+    //           val min = i * spaceBetweenX * 0.9
+    //           val max = i * spaceBetweenX
+    //           new Vector2((dice.rollDouble * (max - min)) + min, 0)
+    //         },
+    //       Nil
+    //     ),
+    //     Nil
+    //   )
+    //     .filter(o => o.y <= height)
+    //     .map { o =>
+    //       val position = Vector2(o.x, o.y - verticalOffset)
+
+    //       val orbit = position.translate(
+    //         Vector2(
+    //           x = (dice.rollDouble * 200) - 100,
+    //           y = (dice.rollDouble * 200) - 100
+    //         )
+    //       )
+
+    //       Asteroid(
+    //         coords = position,
+    //         orbit = orbit,
+    //         _type = dice.roll(4) match {
+    //           case 1 => AsteroidType.Small
+    //           case 2 => AsteroidType.Medium
+    //           case 3 => AsteroidType.Big
+    //           case _ => AsteroidType.ThatsNoMoon
+    //         },
+    //         rotation = Radians(dice.rollDouble) * Radians.TAU,
+    //         rotationSpeed = Radians((dice.rollDouble * 0.1) - 0.05)
+    //       )
+    //     }
+
+    // private def buildObstacleRows(dice: Dice, height: Int, spaceBetweenX: Double, spaceBetweenY: Double, lastRow: List[Vector2], currentObstacles: List[Vector2]): List[Vector2] = {
+    //   val currentRow =
+    //     lastRow.map { o =>
+    //       val startPoint = new Vector2(o.x, o.y - spaceBetweenY * 2)
+    //       val a          = dice.rollDouble * 2 * Math.PI
+    //       val r          = spaceBetweenX * Math.sqrt(dice.rollDouble)
+
+    //       val x = r * Math.cos(a)
+    //       val y = r * Math.sin(a)
+
+    //       new Vector2(startPoint.x + x, startPoint.y - y)
+    //     }
+
+    //   val newObstacles = currentRow ++ currentObstacles
+    //   if (newObstacles.map(_.y).min > -height)
+    //     buildObstacleRows(dice, height, spaceBetweenX, spaceBetweenY, currentRow, newObstacles)
+    //   else
+    //     newObstacles.filter(o => o.y > -height)
+    // }
+
+    // private def filterCollisions(spaceBetweenX: Double, spaceBetweenY: Double, obstacles: List[Vector2], checkedObstacles: List[Vector2]): List[Vector2] =
+    //   obstacles.headOption match {
+    //     case Some(o) =>
+    //       filterCollisions(
+    //         spaceBetweenX,
+    //         spaceBetweenY,
+    //         obstacles
+    //           .filter(o2 =>
+    //             o2 != o &&
+    //               Math.max(o2.x, o.x) - Math.min(o2.x, o.x) >= spaceBetweenX &&
+    //               Math.max(o2.y, o.y) - Math.min(o2.y, o.y) >= spaceBetweenY
+    //           ),
+    //         o :: checkedObstacles
+    //       )
+    //     case None => checkedObstacles
+    //   }
   }
 }

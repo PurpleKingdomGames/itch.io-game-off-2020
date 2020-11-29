@@ -138,6 +138,7 @@ final case class Game(
       this
         .copy(
           ship = nextShip,
+          asteroids = asteroids.map(_.update),
           // asteroids = asteroids
           //   .map(_.moveBy(0, verticalDelta))
           //   .filter(a =>
@@ -181,16 +182,16 @@ object Game {
 
   def initial(dice: Dice, screenBounds: Rectangle): Game = {
     val course =
-      Course(List(Belt.Backyard, Belt.Sky, Belt.EmptySpace, Belt.Asteroids(), Belt.Moon))
+      Course(List(Belt.Backyard, Belt.Sky, Belt.EmptySpace, Belt.Asteroids(3), Belt.Asteroids(6), Belt.Asteroids(9), Belt.Asteroids(2), Belt.EmptySpace, Belt.Moon))
 
     def createAsteroids: List[Asteroid] = {
       val res = course.belts
         .foldLeft(BuildingAsteroids.empty) {
           case (acc, belt) =>
             belt match {
-              case b @ Belt.Asteroids() =>
+              case b @ Belt.Asteroids(_) =>
                 acc.copy(
-                  asteroids = b.getAsteroids(dice, screenBounds.width, acc.heightSoFar),
+                  asteroids = acc.asteroids ++ b.getAsteroids(dice, screenBounds.width, acc.heightSoFar),
                   heightSoFar = acc.heightSoFar + b.height
                 )
 
