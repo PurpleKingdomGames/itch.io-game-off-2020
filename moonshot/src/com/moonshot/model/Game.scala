@@ -171,6 +171,23 @@ final case class Game(
   def percentComplete: Double =
     Math.floor((100 * -(ship.coords.y / course.height.toDouble)) * 100) / 100
 
+  def distanceToMoon: Int = {
+    val distanceFromEarthtoMoon = 384399.9
+    val courseHeightMinusMoon = (course.height - (course.belts
+      .filter {
+        _ match {
+          case Belt.Moon =>
+            true
+          case _ => false
+        }
+      }
+      .map(_.height)
+      .sum)).toDouble
+    val percentComplete = -(ship.coords.y / courseHeightMinusMoon)
+
+    Math.max(0, (distanceFromEarthtoMoon - (distanceFromEarthtoMoon * percentComplete)).toInt)
+  }
+
   def toggleDebug: Game =
     this.copy(debugMode = !debugMode)
 }
