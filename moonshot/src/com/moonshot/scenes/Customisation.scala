@@ -10,6 +10,8 @@ import com.moonshot.viewmodel.ViewModel
 import com.moonshot.viewmodel.ViewInfo
 import com.moonshot.viewmodel.CustomisationViewModel
 import com.moonshot.core.Prefabs
+import com.moonshot.model.Fumes
+import indigoextras.subsystems.AutomataEvent
 
 object Customisation extends Scene[StartUpData, Model, ViewModel] {
 
@@ -45,7 +47,7 @@ object Customisation extends Scene[StartUpData, Model, ViewModel] {
       }
 
   def subSystems: Set[SubSystem] =
-    Set.empty
+    Set(Fumes.subSystem(150))
 
   def updateModel(context: FrameContext[StartUpData], model: Game): GlobalEvent => Outcome[Game] = {
     case _ =>
@@ -70,7 +72,11 @@ object Customisation extends Scene[StartUpData, Model, ViewModel] {
 
         case KeyboardEvent.KeyUp(Key.ENTER) if context.running - viewModel.customisation.screenEnteredAt > Seconds(2) =>
           Outcome(viewModel)
-            .addGlobalEvents(SceneEvent.JumpTo(Level.name), ResetLevel)
+            .addGlobalEvents(
+              SceneEvent.JumpTo(Level.name),
+              ResetLevel,
+              AutomataEvent.KillAll(Fumes.poolKey)
+            )
 
         case _ =>
           updatedViewInfo.map(viewModel.withViewInfo(_))
@@ -98,22 +104,27 @@ object Customisation extends Scene[StartUpData, Model, ViewModel] {
         }
         .at(timeSinceEntered - fadeInDuration)
 
-    val ground =
-      Assets.Placeholder.redBox
-        .moveTo(0, 300)
-        .scaleBy(640 / 32, 1)
-        .withOverlay(Overlay.Color(RGBA(0.9, 0.9, 0.9, 1.0)))
-
     val tryAgain =
       Text("Oops! Hit enter to try again!", 0, 0, 0, Assets.Font.fontKey)
-        .moveTo(middle)
+        .moveTo(middle + Point(0, -40))
         .alignCenter
         .withAlpha(AnimationSignals.textFlash(startTextFlashAfter).at(timeSinceEntered))
 
-    SceneUpdateFragment(shipGraphic, ground)
+    SceneUpdateFragment(
+      Assets.Backgrounds.retryBg,
+      shipGraphic,
+      Assets.Backgrounds.retryGrass
+    )
       .addUiLayerNodes(tryAgain)
       .withGameColorOverlay(AnimationSignals.fadeIn(fadeInDuration).at(timeSinceEntered))
       .withMagnification(viewModel.viewInfo.magnification)
+      .addGlobalEvents(
+        Fumes.spawn(
+          shipGraphic.position,
+          Seconds(1.0),
+          Radians(Radians.TAUby2.value + ((context.dice.rollDouble * 0.5) - 0.25))
+        )
+      )
   }
 
 }

@@ -12,7 +12,26 @@ object Assets {
 
   def dynamicAssets(assetPath: String): Set[AssetType] =
     Placeholder.assets(assetPath) ++
-      Rocket.assets(assetPath)
+      Rocket.assets(assetPath) ++
+      Backgrounds.assets(assetPath)
+
+  object Backgrounds {
+
+    val retryBgName: AssetName    = AssetName("retry")
+    val retryGrassName: AssetName = AssetName("retry grass")
+
+    val retryBg =
+      Graphic(Rectangle(0, 0, 640, 360), 50, Material.Textured(retryBgName))
+    val retryGrass =
+      Graphic(Rectangle(0, 0, 640, 360), 0, Material.Textured(retryGrassName))
+
+    def assets(assetPath: String): Set[AssetType] =
+      Set(
+        AssetType.Image(retryBgName, AssetPath(assetPath + "assets/retry.png")),
+        AssetType.Image(retryGrassName, AssetPath(assetPath + "assets/retryGrass.png"))
+      )
+
+  }
 
   object Placeholder {
     val assetName =

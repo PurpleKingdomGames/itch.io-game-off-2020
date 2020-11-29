@@ -15,7 +15,7 @@ object AnimationSignals {
     }.clampTime(Seconds(0), over)
 
   def crashShip(middle: Point, over: Seconds): Signal[Point] =
-    Bezier(Vertex(middle.x.toDouble, -100), Vertex(middle.x.toDouble, 290))
+    Bezier(Vertex(middle.x.toDouble, -100), Vertex(middle.x.toDouble, 250))
       .toSignal(over)
       .map(_.toPoint)
 

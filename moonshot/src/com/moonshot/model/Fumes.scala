@@ -15,26 +15,26 @@ object Fumes {
   def spawn(at: Point, lifeSpan: Seconds, angle: Radians): AutomataEvent =
     AutomataEvent.Spawn(poolKey, at, Some(lifeSpan), Some(FumePayload(angle)))
 
-  val automaton: Automaton =
+  def automaton(ejectionDistance: Int): Automaton =
     Automaton(
       AutomatonNode.OneOf(Prefabs.fumes),
       Seconds.zero
-    ).withModifier(modifier)
+    ).withModifier(modifier(ejectionDistance))
 
-  val subSystem: Automata =
+  def subSystem(ejectionDistance: Int): Automata =
     Automata(
       poolKey = poolKey,
-      automaton = automaton,
+      automaton = automaton(ejectionDistance),
       layer = Automata.Layer.Game
     ).withMaxPoolSize(300)
 
-  def modifier(seed: AutomatonSeedValues, node: SceneGraphNode): Signal[AutomatonUpdate] =
+  def modifier(ejectionDistance: Int)(seed: AutomatonSeedValues, node: SceneGraphNode): Signal[AutomatonUpdate] =
     (node, seed.payload) match {
       case (fumeParticle: Graphic, Some(FumePayload(angle))) =>
         val position =
           Signal.Lerp(
             seed.spawnedAt,
-            seed.spawnedAt + Point((Math.sin(angle.value) * 300).toInt, (Math.cos(angle.value) * 300).toInt),
+            seed.spawnedAt + Point((Math.sin(angle.value) * ejectionDistance).toInt, (Math.cos(angle.value) * ejectionDistance).toInt),
             seed.lifeSpan
           )
 

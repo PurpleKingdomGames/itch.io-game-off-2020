@@ -31,7 +31,7 @@ object Level extends Scene[StartUpData, Model, ViewModel] {
     EventFilters.Default
 
   def subSystems: Set[SubSystem] =
-    Set(Fumes.subSystem)
+    Set(Fumes.subSystem(300))
 
   def goToCustomisation(ship: Ship, runningTime: Seconds): Boolean =
     ship.lastDeath != Seconds.zero && ((runningTime - ship.lastDeath).value * 0.5) >= 1
