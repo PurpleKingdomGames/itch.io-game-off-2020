@@ -59,8 +59,8 @@ object LevelView {
         .addGameLayerNodes(
           model.asteroids
             .filter(a => renderBounds.isPointWithin(toScreenSpace(a.coords.toPoint)))
-            .map(a =>
-              (a._type match {
+            .map { a =>
+              val graphic = (a._type match {
                 case Small =>
                   Prefabs.asteroid1
                 case Medium =>
@@ -72,7 +72,14 @@ object LevelView {
               })
                 .moveTo(toScreenSpace(a.coords.toPoint))
                 .rotateBy(a.rotation)
-            )
+
+              (a.coords.x + a.coords.y).toInt % 3 match {
+                case 0 => graphic.withOverlay(Overlay.Color(RGBA.Black.withAmount(0.5)))
+                case 1 =>
+                  graphic.withOverlay(Overlay.Color(RGBA.White.withAmount(0.5)))
+                case _ => graphic
+              }
+            }
         )
         .addUiLayerNodes(drawUI(model /*, viewModel*/, viewModel.viewInfo.giveScreenBounds, running))
         .withGameColorOverlay(
