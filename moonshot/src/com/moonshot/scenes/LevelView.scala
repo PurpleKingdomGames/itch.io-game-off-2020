@@ -122,7 +122,9 @@ object LevelView {
       )
 
   def drawUI(model: Game /*, viewModel: ViewModel*/, screenSize: Rectangle, running: Seconds): List[SceneGraphNode] = {
-    val middle = screenSize.center
+    val distanceFromEarthtoMoon = 384399.9
+    val middle                  = screenSize.center
+    val distanceToMoon          = Math.max(0, (distanceFromEarthtoMoon - (distanceFromEarthtoMoon * (model.percentComplete / 100))).toInt)
     // val textWaitTime: Double = 3
 
     // val openingText =
@@ -190,6 +192,7 @@ object LevelView {
     List(
       Text("Health: " + model.ship.health.toString(), 10, 10, 0, Assets.Font.fontKey),
       Text(model.presentTime, screenSize.right - 10, 10, 0, Assets.Font.fontKey).alignRight,
+      Text("Distance to Moon: " + distanceToMoon.toString + " km", 10, screenSize.height - 30, 0, Assets.Font.fontKey),
       // openingText,
       Text("Paused", 0, 0, 0, Assets.Font.fontKey)
         .moveTo(middle)
