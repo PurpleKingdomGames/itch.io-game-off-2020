@@ -182,7 +182,7 @@ object Belt {
                 case 3 => AsteroidType.Big
                 case _ => AsteroidType.ThatsNoMoon
               },
-              rotation = Radians(dice.rollDouble) * Radians.TAU,
+              rotation = Radians(0),
               rotationSpeed = Radians((dice.rollDouble * 0.1) - 0.05)
             )
           },
