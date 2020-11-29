@@ -22,7 +22,8 @@ final case class Game(
     // targetVerticalOffset: Double,
     screenBounds: Rectangle,
     course: Course,
-    camera: Camera
+    camera: Camera,
+    debugMode: Boolean
 ) {
   val maxAsteroids: Int                  = 20
   val initMinAsteroidSpawnRate: Double   = 1
@@ -164,6 +165,9 @@ final case class Game(
 
   def percentComplete: Double =
     Math.floor((100 * -(ship.coords.y / course.height.toDouble)) * 100) / 100
+
+  def toggleDebug: Game =
+    this.copy(debugMode = !debugMode)
 }
 
 object Game {
@@ -213,7 +217,8 @@ object Game {
       // Game.maxTimeLimit.toDouble * 2 * Game.initialSpeed,
       screenBounds,
       course,
-      Camera.initial
+      Camera.initial,
+      debugMode = false
     )
   }
 }

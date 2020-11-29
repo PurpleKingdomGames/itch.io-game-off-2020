@@ -11,6 +11,7 @@ import com.moonshot.model.{Ship, ShipControl}
 import com.moonshot.viewmodel.ViewInfo
 import indigo.shared.EqualTo._
 import com.moonshot.viewmodel.ScreenBoundsUpdated
+import indigo.shared.events.ToggleFullScreen
 
 object Level extends Scene[StartUpData, Model, ViewModel] {
 
@@ -36,6 +37,13 @@ object Level extends Scene[StartUpData, Model, ViewModel] {
     ship.lastDeath != Seconds.zero && ((runningTime - ship.lastDeath).value * 0.5) >= 1
 
   def updateModel(context: FrameContext[StartUpData], model: Game): GlobalEvent => Outcome[Game] = {
+    case KeyboardEvent.KeyUp(Key.KEY_F) =>
+      Outcome(model)
+        .addGlobalEvents(ToggleFullScreen)
+
+    case KeyboardEvent.KeyUp(Key.KEY_D) =>
+      Outcome(model.toggleDebug)
+
     case ResetLevel =>
       Outcome(Game.initial(context.dice, model.screenBounds))
 

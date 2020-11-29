@@ -99,17 +99,18 @@ object Ship {
     )
 
   def updateMove(gameTime: GameTime, shipControl: ShipControl, courseHeight: Int)(ship: Ship): Ship = {
-    val progress: Double    = 1 * -(ship.coords.y / courseHeight.toDouble)
-    val windResistance      = Vector2((progress / 5) + 0.8, (progress / 5) + 0.8) // 1 at the top, 0.8 at the bottom.
-    val rotationSpeed       = Radians(5 * gameTime.delta.value)
-    val angleReversed       = ship.angle + Radians.TAUby2
-    val acceleration        = 40 * gameTime.delta.value
-    val gravityForce        = Vector2(0, Math.min(ship.gravity, ship.gravity * gameTime.delta.value))
-    val nextForce           = (ship.force + gravityForce) * windResistance
-    val thrustForce         = Vector2(Math.sin(angleReversed.value) * acceleration, Math.cos(angleReversed.value) * acceleration)
-    val nextForceWithThrust = (ship.force + gravityForce + thrustForce) * windResistance
+    val windResistanceBase: Double = 0.9
+    val progress: Double           = (1 * -(ship.coords.y / courseHeight.toDouble)) * (1.0 - windResistanceBase)
+    val windResistance             = Vector2(windResistanceBase + progress, windResistanceBase + progress)
+    val rotationSpeed              = Radians(5 * gameTime.delta.value)
+    val angleReversed              = ship.angle + Radians.TAUby2
+    val acceleration               = 40 * gameTime.delta.value
+    val gravityForce               = Vector2(0, Math.min(ship.gravity, ship.gravity * gameTime.delta.value))
+    val nextForce                  = (ship.force + gravityForce) * windResistance
+    val thrustForce                = Vector2(Math.sin(angleReversed.value) * acceleration, Math.cos(angleReversed.value) * acceleration)
+    val nextForceWithThrust        = (ship.force + gravityForce + thrustForce) * windResistance
 
-    val adjustForce = if(ship.coords.y == courseHeight && nextForce.y < 0) nextForce * Vector2(1, 0) else nextForce
+    val adjustForce = nextForce//if (ship.coords.y == courseHeight && nextForce.y < 0) nextForce * Vector2(1, 0) else nextForce
 
     shipControl match {
       case Idle =>

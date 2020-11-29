@@ -11,6 +11,7 @@ import com.moonshot.viewmodel.ViewInfo
 import com.moonshot.model.LevelType.Lander
 import com.moonshot.model.LevelType.Slalom
 import com.moonshot.model.LevelType.Gauntlet
+import indigo.shared.events.ToggleFullScreen
 
 object LevelSelect extends Scene[StartUpData, Model, ViewModel] {
 
@@ -33,6 +34,10 @@ object LevelSelect extends Scene[StartUpData, Model, ViewModel] {
     Set.empty
 
   def updateModel(context: FrameContext[StartUpData], model: LevelType): GlobalEvent => Outcome[LevelType] = {
+    case KeyboardEvent.KeyUp(Key.KEY_F) =>
+      Outcome(model)
+        .addGlobalEvents(ToggleFullScreen)
+
     case KeyboardEvent.KeyUp(Key.UP_ARROW) =>
       Outcome(model.up)
 

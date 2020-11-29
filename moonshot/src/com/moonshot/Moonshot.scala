@@ -13,9 +13,9 @@ import com.moonshot.scenes.LevelSelect
 import com.moonshot.scenes.Customisation
 import com.moonshot.scenes.loading.Loading
 import com.moonshot.viewmodel.ViewModel
-import com.moonshot.scenes.FullScreen
+// import com.moonshot.scenes.FullScreen
 import com.moonshot.viewmodel.ViewInfo
-import indigoextras.subsystems.FPSCounter
+// import indigoextras.subsystems.FPSCounter
 
 @JSExportTopLevel("IndigoGame")
 object Moonshot extends IndigoGame[BootData, StartUpData, Model, ViewModel] {
@@ -50,14 +50,14 @@ object Moonshot extends IndigoGame[BootData, StartUpData, Model, ViewModel] {
     )
       .withAssets(Assets.loadingAssets(assetPath))
       .withFonts(Assets.Font.fontInfo)
-      .withSubSystems(FPSCounter(Assets.Font.fontKey, Point(150, 10), targetFPS))
+      // .withSubSystems(FPSCounter(Assets.Font.fontKey, Point(150, 10), targetFPS))
       .withAnimations(Assets.Rocket.thrustAnimation)
   }
 
   def scenes(bootData: BootData): NonEmptyList[Scene[StartUpData, Model, ViewModel]] =
     NonEmptyList(
       Loading(bootData.assetPath, bootData.viewport),
-      FullScreen,
+      // FullScreen,
       LevelSelect,
       Level,
       Customisation
