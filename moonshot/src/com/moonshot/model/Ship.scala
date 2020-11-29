@@ -111,7 +111,7 @@ object Ship {
     val thrustForce                = Vector2(Math.sin(angleReversed.value) * acceleration, Math.cos(angleReversed.value) * acceleration)
     val nextForceWithThrust        = (ship.force + gravityForce + thrustForce) * windResistance
 
-    val adjustForce = nextForce//if (ship.coords.y == courseHeight && nextForce.y < 0) nextForce * Vector2(1, 0) else nextForce
+    val adjustForce = nextForce //if (ship.coords.y == courseHeight && nextForce.y < 0) nextForce * Vector2(1, 0) else nextForce
 
     shipControl match {
       case Idle =>
@@ -210,7 +210,8 @@ object Ship {
 
   def applyGravity(courseHeight: Int)(ship: Ship): Ship =
     ship.copy(
-      gravity = Ship.StandardGravity * (1 - -(ship.coords.y / courseHeight.toDouble))
+      // Only every get to 95% gravity to help with landing on the moon
+      gravity = Ship.StandardGravity * (1 - -((ship.coords.y / courseHeight.toDouble) + 0.05))
     )
 
   def wrapRadians(r: Radians): Radians =
