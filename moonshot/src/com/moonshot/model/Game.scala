@@ -23,6 +23,7 @@ final case class Game(
     screenBounds: Rectangle,
     course: Course,
     camera: Camera,
+    distanceToMoon: Double,
     debugMode: Boolean
 ) {
   val maxAsteroids: Int                  = 20
@@ -39,9 +40,6 @@ final case class Game(
       gameState match {
         case GameState.GameRunning if ship.hasLandedOnMoon =>
           Outcome(this.copy(gameState = GameState.GameWin))
-
-        case GameState.GameRunning if timeRemainingInSeconds.toDouble <= 0 =>
-          Outcome(this.copy(gameState = GameState.GameLoss))
 
         case GameState.GameRunning =>
           updateRunningGame(gameTime /*, dice*/, shipControl)
@@ -134,6 +132,24 @@ final case class Game(
           isInMoonBelt
         )
 
+    val courseHeightMinusMoon = (course.height - (course.belts
+      .filter {
+        _ match {
+          case Belt.Moon =>
+            true
+          case _ => false
+        }
+      }
+      .map(_.height)
+      .sum)).toDouble
+    val percentComplete = -(ship.coords.y / courseHeightMinusMoon)
+
+    val distanceToMoon =
+      if (nextShip.health > 0)
+        Math.max(0, (Game.distanceFromEarthtoMoon - (Game.distanceFromEarthtoMoon * percentComplete)))
+      else
+        this.distanceToMoon
+
     Outcome(
       this
         .copy(
@@ -148,6 +164,7 @@ final case class Game(
           //   ),
           // verticalOffset = Math.min(targetVerticalOffset, verticalOffset + verticalDelta),
           timeRemainingInSeconds = Seconds(Math.max(0, (timeRemainingInSeconds - gameTime.delta).toDouble)),
+          distanceToMoon = distanceToMoon,
           camera =
             if (nextShip.health > 0)
               camera.update(nextShip.coords.toPoint, nextShip.angle, course.height, screenBounds.height)
@@ -171,28 +188,12 @@ final case class Game(
   def percentComplete: Double =
     Math.floor((100 * -(ship.coords.y / course.height.toDouble)) * 100) / 100
 
-  def distanceToMoon: Int = {
-    val distanceFromEarthtoMoon = 384399.9
-    val courseHeightMinusMoon = (course.height - (course.belts
-      .filter {
-        _ match {
-          case Belt.Moon =>
-            true
-          case _ => false
-        }
-      }
-      .map(_.height)
-      .sum)).toDouble
-    val percentComplete = -(ship.coords.y / courseHeightMinusMoon)
-
-    Math.max(0, (distanceFromEarthtoMoon - (distanceFromEarthtoMoon * percentComplete)).toInt)
-  }
-
   def toggleDebug: Game =
     this.copy(debugMode = !debugMode)
 }
 
 object Game {
+  val distanceFromEarthtoMoon     = 384399.9
   val maxTimeLimit: Seconds       = Seconds(300) // 5 Minutes
   val targetVerticalSpeed: Double = 400
   val initialSpeed: Double        = 40
@@ -261,6 +262,7 @@ object Game {
       screenBounds,
       course,
       Camera.initial,
+      distanceFromEarthtoMoon,
       debugMode = false
     )
   }

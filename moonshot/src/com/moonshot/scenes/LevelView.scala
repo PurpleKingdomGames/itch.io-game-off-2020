@@ -189,8 +189,7 @@ object LevelView {
 
     List(
       Text("Health: " + model.ship.health.toString(), 10, 10, 0, Assets.Font.fontKey),
-      Text(model.presentTime, screenSize.right - 10, 10, 0, Assets.Font.fontKey).alignRight,
-      Text("Distance to Moon: " + model.distanceToMoon.toString + " km", 10, screenSize.height - 30, 0, Assets.Font.fontKey),
+      Text("Distance to Moon: " + model.distanceToMoon.toInt.toString + " km", screenSize.right - 10, 10, 0, Assets.Font.fontKey).alignRight,
       // openingText,
       Text("Paused", 0, 0, 0, Assets.Font.fontKey)
         .moveTo(middle)
