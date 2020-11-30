@@ -8,7 +8,8 @@ object Assets {
     AssetName("rocket")
 
   def loadingAssets(assetPath: String): Set[AssetType] =
-    Font.assets(assetPath)
+    Font.assets(assetPath) ++
+      Sounds.assets(assetPath)
 
   def dynamicAssets(assetPath: String): Set[AssetType] =
     Placeholder.assets(assetPath) ++
@@ -144,6 +145,15 @@ object Assets {
         .addChar(FontChar(":", 2, 26, 5, 12))
         .addChar(FontChar("_", 42, 65, 9, 12))
         .addChar(FontChar("%", 47, 0, 14, 12))
+  }
+
+  object Sounds {
+    val mainLoop: AssetName = AssetName("main-loop")
+
+    def assets(assetPath: String): Set[AssetType] =
+      Set(
+        AssetType.Audio(Sounds.mainLoop, AssetPath(assetPath + "assets/main-loop.mp3"))
+      )
   }
 }
 

@@ -98,6 +98,16 @@ object LevelView {
             RGBA.Black.withAmount(Math.min(1, (running - model.ship.lastDeath).value * 0.5))
         )
         .withMagnification(viewModel.viewInfo.magnification)
+        .withAudio(
+          SceneAudio(
+            SceneAudioSource(
+              BindingKey(Assets.Sounds.mainLoop.value),
+              PlaybackPattern.SingleTrackLoop(
+                Track(Assets.Sounds.mainLoop, Volume(0.5))
+              )
+            )
+          )
+        )
   }
 
   def drawCourse(course: Course, screenSize: Rectangle, toScreenSpace: Point => Point, debugMode: Boolean): SceneUpdateFragment =
