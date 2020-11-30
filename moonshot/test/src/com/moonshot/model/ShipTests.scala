@@ -93,7 +93,7 @@ class ShipTests extends munit.FunSuite {
 
   test("Real case") {
     val s =
-      Ship(3, 3, Vector2(0, 0.1938), Vector2(320, -19.8062), Radians(0), Seconds(0), Seconds(0), 11.9702907, false)
+      Ship(3, 3, Vector2(0, 0.1938), Vector2(320, -19.8062), Radians(0), Seconds(0), Seconds(0), 11.9702907, false, ShipControl.Idle)
 
     val ls = LineSegment(start = Vertex(-100, 1), end = Vertex(500, 1))
 
@@ -102,7 +102,7 @@ class ShipTests extends munit.FunSuite {
 
   test("Real case 2") {
     val s =
-      Ship(3, 3, Vector2(0, 0.1938), Vector2(50, -2000), Radians(0), Seconds(0), Seconds(0), 11.9702907, false)
+      Ship(3, 3, Vector2(0, 0.1938), Vector2(50, -2000), Radians(0), Seconds(0), Seconds(0), 11.9702907, false, ShipControl.Idle)
 
     val ls = LineSegment(start = Vertex(0, -2000), end = Vertex(100, -2000))
 
