@@ -184,7 +184,7 @@ final case class Game(
               Assets.Sounds.asteroidHit
             else
               Assets.Sounds.zeroHealth,
-            Volume(0.1)
+            Volume(0.25)
           )
         )
     else

@@ -92,6 +92,17 @@ object LevelSelect extends Scene[StartUpData, Model, ViewModel] {
         .moveTo(middle)
         .moveBy(0, 60)
         .alignCenter
-    ).withMagnification(viewModel.magnification)
+    )
+      .withAudio(
+        SceneAudio(
+          SceneAudioSource(
+            BindingKey(Assets.Sounds.engineLoop.value),
+            PlaybackPattern.SingleTrackLoop(
+              Track(Assets.Sounds.menuLoop, Volume(0.75))
+            )
+          )
+        )
+      )
+      .withMagnification(viewModel.magnification)
   }
 }
