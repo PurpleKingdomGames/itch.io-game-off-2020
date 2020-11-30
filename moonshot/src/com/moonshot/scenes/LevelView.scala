@@ -67,7 +67,7 @@ object LevelView {
         Assets.Backgrounds.parallaxStars.moveTo(0, parallaxY)
       )
 
-    val scene = drawCourse(model.course, model.screenBounds, toScreenSpace, model.debugMode) |+|
+    drawCourse(model.course, model.screenBounds, toScreenSpace, model.debugMode) |+|
       SceneUpdateFragment(bg ++ combinedShip)
         .addGameLayerNodes(
           model.asteroids
@@ -102,8 +102,7 @@ object LevelView {
             RGBA.Black.withAmount(Math.min(1, (running - model.ship.lastDeath).value * 0.5))
         )
         .withMagnification(viewModel.viewInfo.magnification)
-
-    addAudio(scene, model.ship.lastControl)
+        .withAudio(addAudio(context.inputState.mapInputs(Ship.inputMappings, ShipControl.Idle)))
   }
 
   def drawCourse(course: Course, screenSize: Rectangle, toScreenSpace: Point => Point, debugMode: Boolean): SceneUpdateFragment =
@@ -220,7 +219,7 @@ object LevelView {
     ) ++ endText ++ debug
   }
 
-  def addAudio(scene: SceneUpdateFragment, shipControl: ShipControl) = {
+  def addAudio(shipControl: ShipControl): SceneAudio = {
     val thrustSound =
       SceneAudioSource(
         BindingKey(Assets.Sounds.engineLoop.value),
@@ -229,25 +228,26 @@ object LevelView {
         )
       )
 
-    scene.withAudio(
-      SceneAudio(
-        SceneAudioSource(
-          BindingKey(Assets.Sounds.mainLoop.value),
-          PlaybackPattern.SingleTrackLoop(
-            Track(Assets.Sounds.mainLoop, Volume(0.75))
-          )
-        ),
-        (shipControl match {
-          case Thrust =>
-            thrustSound
-          case ThrustLeft =>
-            thrustSound
-          case ThrustRight =>
-            thrustSound
-          case _ =>
-            SceneAudioSource.None
-        })
+    val bgMusic =
+      SceneAudioSource(
+        BindingKey(Assets.Sounds.mainLoop.value),
+        PlaybackPattern.SingleTrackLoop(
+          Track(Assets.Sounds.mainLoop, Volume(0.5))
+        )
       )
-    )
+
+    shipControl match {
+      case Thrust =>
+        SceneAudio(thrustSound, bgMusic)
+
+      case ThrustLeft =>
+        SceneAudio(thrustSound, bgMusic)
+
+      case ThrustRight =>
+        SceneAudio(thrustSound, bgMusic)
+
+      case _ =>
+        SceneAudio(SceneAudioSource.None, bgMusic)
+    }
   }
 }
