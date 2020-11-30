@@ -225,7 +225,7 @@ object LevelView {
       SceneAudioSource(
         BindingKey(Assets.Sounds.engineLoop.value),
         PlaybackPattern.SingleTrackLoop(
-          Track(Assets.Sounds.engineLoop, Volume(0.25))
+          Track(Assets.Sounds.engineLoop, Volume(0.5))
         )
       )
 
@@ -236,20 +236,17 @@ object LevelView {
           PlaybackPattern.SingleTrackLoop(
             Track(Assets.Sounds.mainLoop, Volume(0.75))
           )
-        ) |+|
-          (shipControl match {
-            case Thrust =>
-              thrustSound
-            case ThrustLeft =>
-              thrustSound
-            case ThrustRight =>
-              thrustSound
-            case _ =>
-              SceneAudioSource(
-                BindingKey(Assets.Sounds.engineLoop.value),
-                PlaybackPattern.Silent
-              )
-          })
+        ),
+        (shipControl match {
+          case Thrust =>
+            thrustSound
+          case ThrustLeft =>
+            thrustSound
+          case ThrustRight =>
+            thrustSound
+          case _ =>
+            SceneAudioSource.None
+        })
       )
     )
   }
