@@ -15,6 +15,10 @@ import com.moonshot.model.AsteroidType.Small
 import com.moonshot.model.AsteroidType.Medium
 import com.moonshot.model.AsteroidType.Big
 import com.moonshot.model.AsteroidType.ThatsNoMoon
+import com.moonshot.model.ShipControl
+import com.moonshot.model.ShipControl.Thrust
+import com.moonshot.model.ShipControl.ThrustLeft
+import com.moonshot.model.ShipControl.ThrustRight
 
 object LevelView {
 
@@ -63,7 +67,7 @@ object LevelView {
         Assets.Backgrounds.parallaxStars.moveTo(0, parallaxY)
       )
 
-    drawCourse(model.course, model.screenBounds, toScreenSpace, model.debugMode) |+|
+    val scene = drawCourse(model.course, model.screenBounds, toScreenSpace, model.debugMode) |+|
       SceneUpdateFragment(bg ++ combinedShip)
         .addGameLayerNodes(
           model.asteroids
@@ -98,16 +102,8 @@ object LevelView {
             RGBA.Black.withAmount(Math.min(1, (running - model.ship.lastDeath).value * 0.5))
         )
         .withMagnification(viewModel.viewInfo.magnification)
-        .withAudio(
-          SceneAudio(
-            SceneAudioSource(
-              BindingKey(Assets.Sounds.mainLoop.value),
-              PlaybackPattern.SingleTrackLoop(
-                Track(Assets.Sounds.mainLoop, Volume(0.5))
-              )
-            )
-          )
-        )
+
+    addAudio(scene, context.inputState.mapInputs(Ship.inputMappings, ShipControl.Idle))
   }
 
   def drawCourse(course: Course, screenSize: Rectangle, toScreenSpace: Point => Point, debugMode: Boolean): SceneUpdateFragment =
@@ -224,4 +220,35 @@ object LevelView {
     ) ++ endText ++ debug
   }
 
+  def addAudio(scene: SceneUpdateFragment, shipControl: ShipControl) = {
+    val thrustSound = SceneAudio(
+      SceneAudioSource(
+        BindingKey(Assets.Sounds.engineLoop.value),
+        PlaybackPattern.SingleTrackLoop(
+          Track(Assets.Sounds.engineLoop, Volume(1))
+        )
+      )
+    )
+    val withRocketAudio =
+      shipControl match {
+        case Thrust =>
+          scene.withAudio(thrustSound)
+        case ThrustLeft =>
+          scene.withAudio(thrustSound)
+        case ThrustRight =>
+          scene.withAudio(thrustSound)
+        case _ => scene
+      }
+
+    withRocketAudio.withAudio(
+      SceneAudio(
+        SceneAudioSource(
+          BindingKey(Assets.Sounds.mainLoop.value),
+          PlaybackPattern.SingleTrackLoop(
+            Track(Assets.Sounds.mainLoop, Volume(0))
+          )
+        )
+      )
+    )
+  }
 }

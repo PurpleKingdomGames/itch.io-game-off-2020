@@ -148,11 +148,13 @@ object Assets {
   }
 
   object Sounds {
-    val mainLoop: AssetName = AssetName("main-loop")
+    val mainLoop: AssetName   = AssetName("main-loop")
+    val engineLoop: AssetName = AssetName("engine-loop")
 
     def assets(assetPath: String): Set[AssetType] =
       Set(
-        AssetType.Audio(Sounds.mainLoop, AssetPath(assetPath + "assets/main-loop.mp3"))
+        AssetType.Audio(Sounds.mainLoop, AssetPath(assetPath + "assets/main-loop.mp3")),
+        AssetType.Audio(Sounds.engineLoop, AssetPath(assetPath + "assets/rocket-loop.mp3"))
       )
   }
 }
