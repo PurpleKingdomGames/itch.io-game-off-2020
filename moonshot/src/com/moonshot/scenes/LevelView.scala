@@ -224,7 +224,7 @@ object LevelView {
       SceneAudioSource(
         BindingKey(Assets.Sounds.engineLoop.value),
         PlaybackPattern.SingleTrackLoop(
-          Track(Assets.Sounds.engineLoop, Volume(0.5))
+          Track(Assets.Sounds.engineLoop, Volume(0.1))
         )
       )
 
@@ -232,7 +232,7 @@ object LevelView {
       SceneAudioSource(
         BindingKey(Assets.Sounds.mainLoop.value),
         PlaybackPattern.SingleTrackLoop(
-          Track(Assets.Sounds.mainLoop, Volume(0.5))
+          Track(Assets.Sounds.mainLoop, Volume(0.25))
         )
       )
 

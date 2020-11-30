@@ -8,6 +8,7 @@ import com.moonshot.viewmodel.ScreenBoundsUpdated
 import com.moonshot.model.Course
 import com.moonshot.model.Belt
 import com.moonshot.model.Camera
+import com.moonshot.core.Assets
 
 final case class Game(
     levelType: LevelType,
@@ -115,6 +116,7 @@ final case class Game(
   def updateRunningGame(gameTime: GameTime /*, dice: Dice*/, shipControl: ShipControl) = {
     // val verticalSpeed = Math.max(initialSpeed, targetVerticalSpeed * (verticalOffset / targetVerticalOffset))
     // val verticalDelta = -(Math.max(-3, Math.min(-1, ship.force.y)) * verticalSpeed) * gameTime.delta.value
+    val prevHealth = ship.health
     val nextShip =
       ship
         .update(
@@ -150,7 +152,7 @@ final case class Game(
       else
         this.distanceToMoon
 
-    Outcome(
+    val outcome = Outcome(
       this
         .copy(
           ship = nextShip,
@@ -173,6 +175,20 @@ final case class Game(
         )
       // .spawnAsteroid(gameTime, dice, screenBounds)
     )
+
+    if (prevHealth > nextShip.health)
+      outcome
+        .addGlobalEvents(
+          PlaySound(
+            if (nextShip.health > 0)
+              Assets.Sounds.asteroidHit
+            else
+              Assets.Sounds.zeroHealth,
+            Volume(0.1)
+          )
+        )
+    else
+      outcome
   }
 
   def presentTime: String = {
