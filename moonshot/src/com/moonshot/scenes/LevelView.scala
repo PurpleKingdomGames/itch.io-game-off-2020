@@ -54,8 +54,17 @@ object LevelView {
       else
         List(shipGraphic)
 
+    val parallaxY: Int =
+      -(1080 - 360 - ((1080 - 360) * (model.percentComplete / 100))).toInt
+
+    val bg =
+      List(
+        Assets.Backgrounds.starsBg,
+        Assets.Backgrounds.parallaxStars.moveTo(0, parallaxY)
+      )
+
     drawCourse(model.course, model.screenBounds, toScreenSpace, model.debugMode) |+|
-      SceneUpdateFragment(combinedShip)
+      SceneUpdateFragment(bg ++ combinedShip)
         .addGameLayerNodes(
           model.asteroids
             .filter(a => renderBounds.isPointWithin(toScreenSpace(a.coords.toPoint)))
@@ -196,7 +205,7 @@ object LevelView {
 
     List(
       Text("Health: " + model.ship.health.toString(), 10, 10, 0, Assets.Font.fontKey),
-      Text("Distance to Moon: " + model.distanceToMoon.toInt.toString + " km", screenSize.right - 10, 10, 0, Assets.Font.fontKey).alignRight,
+      Text("Distance to Moon\n" + model.distanceToMoon.toInt.toString + " km", screenSize.right - 10, 10, 0, Assets.Font.fontKey).alignRight,
       // openingText,
       Text("Paused", 0, 0, 0, Assets.Font.fontKey)
         .moveTo(middle)
