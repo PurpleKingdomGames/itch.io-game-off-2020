@@ -45,26 +45,11 @@ object Belt {
         LineSegment(Vertex(-100, 1), Vertex(500, 1))
       )
 
-    def background(screenSize: Rectangle, verticalOffset: Int, toScreenSpace: Point => Point): List[SceneGraphNode] = {
-
-      val ground =
-        Assets.Placeholder.redBox
-          .moveTo(toScreenSpace(Point(0, 0)))
-          .scaleBy(640 / 32, 1)
-          .withOverlay(Overlay.Color(RGBA(0.9, 0.9, 0.9, 1.0)))
-
-      val bgColour =
-        Prefabs.swatch1
-          .moveTo(toScreenSpace(Point(0, -height + verticalOffset)))
-          .scaleBy(screenSize.width.toDouble / 32.0, height.toDouble / 32.0)
-
+    def background(screenSize: Rectangle, verticalOffset: Int, toScreenSpace: Point => Point): List[SceneGraphNode] =
       List(
-        bgColour,
-        ground,
-        ground.moveBy(0, 32).withOverlay(Overlay.Color(RGBA(0.5, 0.5, 0.5, 1.0))),
-        ground.moveBy(0, 64).withOverlay(Overlay.Color(RGBA(0.3, 0.3, 0.3, 1.0)))
+        Assets.Backgrounds.backyard
+          .moveTo(toScreenSpace(Point(0, -(720 - 80) + verticalOffset)))
       )
-    }
   }
 
   case object Moon extends Belt {
@@ -98,26 +83,7 @@ object Belt {
       Nil
 
     def background(screenSize: Rectangle, verticalOffset: Int, toScreenSpace: Point => Point): List[SceneGraphNode] =
-      List(
-        Prefabs.swatch6
-          .moveTo(toScreenSpace(Point(0, (-32 * 6) + verticalOffset)))
-          .scaleBy(screenSize.width.toDouble / 32.0, 1),
-        Prefabs.swatch5
-          .moveTo(toScreenSpace(Point(0, (-32 * 5) + verticalOffset)))
-          .scaleBy(screenSize.width.toDouble / 32.0, 1),
-        Prefabs.swatch4
-          .moveTo(toScreenSpace(Point(0, (-32 * 4) + verticalOffset)))
-          .scaleBy(screenSize.width.toDouble / 32.0, 1),
-        Prefabs.swatch3
-          .moveTo(toScreenSpace(Point(0, (-32 * 3) + verticalOffset)))
-          .scaleBy(screenSize.width.toDouble / 32.0, 1),
-        Prefabs.swatch2
-          .moveTo(toScreenSpace(Point(0, (-32 * 2) + verticalOffset)))
-          .scaleBy(screenSize.width.toDouble / 32.0, 1),
-        Prefabs.swatch1
-          .moveTo(toScreenSpace(Point(0, (-32 * 1) + verticalOffset)))
-          .scaleBy(screenSize.width.toDouble / 32.0, 1)
-      )
+      Nil
   }
 
   case object EmptySpace extends Belt {

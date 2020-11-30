@@ -22,6 +22,7 @@ object Assets {
     val retryGrassName: AssetName    = AssetName("retry grass")
     val starsName: AssetName         = AssetName("stars")
     val parallaxStarsName: AssetName = AssetName("parallax stars")
+    val backyardName: AssetName      = AssetName("backyard")
 
     val retryBg =
       Graphic(Rectangle(0, 0, 640, 360), 50, Material.Textured(retryBgName))
@@ -32,12 +33,16 @@ object Assets {
     val parallaxStars =
       Graphic(Rectangle(0, 0, 640, 1080), 900, Material.Textured(parallaxStarsName))
 
+    val backyard =
+      Graphic(Rectangle(0, 0, 640, 720), 200, Material.Textured(backyardName))
+
     def assets(assetPath: String): Set[AssetType] =
       Set(
         AssetType.Image(retryBgName, AssetPath(assetPath + "assets/retry.png")),
         AssetType.Image(retryGrassName, AssetPath(assetPath + "assets/retryGrass.png")),
         AssetType.Image(starsName, AssetPath(assetPath + "assets/stars.png")),
-        AssetType.Image(parallaxStarsName, AssetPath(assetPath + "assets/parallaxStars.png"))
+        AssetType.Image(parallaxStarsName, AssetPath(assetPath + "assets/parallaxStars.png")),
+        AssetType.Image(backyardName, AssetPath(assetPath + "assets/backyard.png"))
       )
 
   }
