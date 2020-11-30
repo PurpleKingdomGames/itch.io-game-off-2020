@@ -21,7 +21,8 @@ final case class Ship(
     lastDeath: Seconds,
     gravity: Double,
     hasLandedOnMoon: Boolean,
-    lastControl: ShipControl
+    lastControl: ShipControl,
+    maxY: Double
 ) {
   val bounds: BoundingBox =
     BoundingBox(Vertex(0, 0), Vertex(32, 64))
@@ -90,7 +91,8 @@ object Ship {
       Seconds.zero,
       StandardGravity,
       false,
-      Idle
+      Idle,
+      0
     )
 
   val inputMappings: InputMapping[ShipControl] =
@@ -130,7 +132,8 @@ object Ship {
         ship.copy(
           force = adjustForce,
           coords = ship.coords + adjustForce,
-          lastControl = Idle
+          lastControl = Idle,
+          maxY = Math.min(ship.coords.y, ship.maxY)
         )
 
       case TurnLeft =>
@@ -138,7 +141,8 @@ object Ship {
           force = adjustForce,
           coords = ship.coords + adjustForce,
           angle = ship.angle + rotationSpeed,
-          lastControl = TurnLeft
+          lastControl = TurnLeft,
+          maxY = Math.min(ship.coords.y, ship.maxY)
         )
 
       case TurnRight =>
@@ -146,14 +150,16 @@ object Ship {
           force = adjustForce,
           coords = ship.coords + adjustForce,
           angle = ship.angle - rotationSpeed,
-          lastControl = TurnRight
+          lastControl = TurnRight,
+          maxY = Math.min(ship.coords.y, ship.maxY)
         )
 
       case Thrust =>
         ship.copy(
           force = nextForceWithThrust,
           coords = ship.coords + nextForceWithThrust,
-          lastControl = Thrust
+          lastControl = Thrust,
+          maxY = Math.min(ship.coords.y, ship.maxY)
         )
 
       case ThrustLeft =>
@@ -161,7 +167,8 @@ object Ship {
           force = nextForceWithThrust,
           coords = ship.coords + nextForceWithThrust,
           angle = ship.angle + rotationSpeed,
-          lastControl = ThrustLeft
+          lastControl = ThrustLeft,
+          maxY = Math.min(ship.coords.y, ship.maxY)
         )
 
       case ThrustRight =>
@@ -169,7 +176,8 @@ object Ship {
           force = nextForceWithThrust,
           coords = ship.coords + nextForceWithThrust,
           angle = ship.angle - rotationSpeed,
-          lastControl = ThrustRight
+          lastControl = ThrustRight,
+          maxY = Math.min(ship.coords.y, ship.maxY)
         )
     }
   }
@@ -203,6 +211,7 @@ object Ship {
 
   def updatePlatformCollisions(gameTime: GameTime, platforms: List[LineSegment], isInMoonBelt: Boolean)(ship: Ship): Ship =
     platforms
+      .filter(p => p.center.y > (ship.maxY + ship.boundingBox.halfSize.y))
       .map(p => ship.boundingBox.lineIntersectsAt(p).map(_ => p))
       .collect { case Some(s) => Some(s) }
       .headOption
