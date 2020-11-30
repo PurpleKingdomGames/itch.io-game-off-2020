@@ -103,7 +103,7 @@ object LevelView {
         )
         .withMagnification(viewModel.viewInfo.magnification)
 
-    addAudio(scene, context.inputState.mapInputs(Ship.inputMappings, ShipControl.Idle))
+    addAudio(scene, model.ship.lastControl)
   }
 
   def drawCourse(course: Course, screenSize: Rectangle, toScreenSpace: Point => Point, debugMode: Boolean): SceneUpdateFragment =
@@ -221,33 +221,35 @@ object LevelView {
   }
 
   def addAudio(scene: SceneUpdateFragment, shipControl: ShipControl) = {
-    val thrustSound = SceneAudio(
+    val thrustSound =
       SceneAudioSource(
         BindingKey(Assets.Sounds.engineLoop.value),
         PlaybackPattern.SingleTrackLoop(
-          Track(Assets.Sounds.engineLoop, Volume(1))
+          Track(Assets.Sounds.engineLoop, Volume(0.25))
         )
       )
-    )
-    val withRocketAudio =
-      shipControl match {
-        case Thrust =>
-          scene.withAudio(thrustSound)
-        case ThrustLeft =>
-          scene.withAudio(thrustSound)
-        case ThrustRight =>
-          scene.withAudio(thrustSound)
-        case _ => scene
-      }
 
-    withRocketAudio.withAudio(
+    scene.withAudio(
       SceneAudio(
         SceneAudioSource(
           BindingKey(Assets.Sounds.mainLoop.value),
           PlaybackPattern.SingleTrackLoop(
-            Track(Assets.Sounds.mainLoop, Volume(0))
+            Track(Assets.Sounds.mainLoop, Volume(0.75))
           )
-        )
+        ) |+|
+          (shipControl match {
+            case Thrust =>
+              thrustSound
+            case ThrustLeft =>
+              thrustSound
+            case ThrustRight =>
+              thrustSound
+            case _ =>
+              SceneAudioSource(
+                BindingKey(Assets.Sounds.engineLoop.value),
+                PlaybackPattern.Silent
+              )
+          })
       )
     )
   }

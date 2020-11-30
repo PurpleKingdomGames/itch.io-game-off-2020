@@ -11,7 +11,18 @@ import com.moonshot.model.ShipControl.ThrustLeft
 import com.moonshot.model.ShipControl.ThrustRight
 import indigoextras.geometry.LineSegment
 
-final case class Ship(health: Int, lives: Int, force: Vector2, coords: Vector2, angle: Radians, lastImpact: Seconds, lastDeath: Seconds, gravity: Double, hasLandedOnMoon: Boolean) {
+final case class Ship(
+    health: Int,
+    lives: Int,
+    force: Vector2,
+    coords: Vector2,
+    angle: Radians,
+    lastImpact: Seconds,
+    lastDeath: Seconds,
+    gravity: Double,
+    hasLandedOnMoon: Boolean,
+    lastControl: ShipControl
+) {
   val bounds: BoundingBox =
     BoundingBox(Vertex(0, 0), Vertex(32, 64))
   val boundingBox: BoundingBox =
@@ -78,7 +89,8 @@ object Ship {
       Seconds.zero,
       Seconds.zero,
       StandardGravity,
-      false
+      false,
+      Idle
     )
 
   val inputMappings: InputMapping[ShipControl] =
@@ -117,41 +129,47 @@ object Ship {
       case Idle =>
         ship.copy(
           force = adjustForce,
-          coords = ship.coords + adjustForce
+          coords = ship.coords + adjustForce,
+          lastControl = Idle
         )
 
       case TurnLeft =>
         ship.copy(
           force = adjustForce,
           coords = ship.coords + adjustForce,
-          angle = ship.angle + rotationSpeed
+          angle = ship.angle + rotationSpeed,
+          lastControl = TurnLeft
         )
 
       case TurnRight =>
         ship.copy(
           force = adjustForce,
           coords = ship.coords + adjustForce,
-          angle = ship.angle - rotationSpeed
+          angle = ship.angle - rotationSpeed,
+          lastControl = TurnRight
         )
 
       case Thrust =>
         ship.copy(
           force = nextForceWithThrust,
-          coords = ship.coords + nextForceWithThrust
+          coords = ship.coords + nextForceWithThrust,
+          lastControl = Thrust
         )
 
       case ThrustLeft =>
         ship.copy(
           force = nextForceWithThrust,
           coords = ship.coords + nextForceWithThrust,
-          angle = ship.angle + rotationSpeed
+          angle = ship.angle + rotationSpeed,
+          lastControl = ThrustLeft
         )
 
       case ThrustRight =>
         ship.copy(
           force = nextForceWithThrust,
           coords = ship.coords + nextForceWithThrust,
-          angle = ship.angle - rotationSpeed
+          angle = ship.angle - rotationSpeed,
+          lastControl = ThrustRight
         )
     }
   }
