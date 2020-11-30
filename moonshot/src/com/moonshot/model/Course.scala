@@ -60,7 +60,9 @@ object Belt {
 
       List(
         bgColour,
-        ground
+        ground,
+        ground.moveBy(0, 32).withOverlay(Overlay.Color(RGBA(0.5, 0.5, 0.5, 1.0))),
+        ground.moveBy(0, 64).withOverlay(Overlay.Color(RGBA(0.3, 0.3, 0.3, 1.0)))
       )
     }
   }
