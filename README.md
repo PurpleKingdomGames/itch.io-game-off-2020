@@ -27,7 +27,7 @@ So this isn't the game we intended ...but we had a good time building it and we'
 
 All of the source code and graphics were produced by [@hobnob](https://github.com/hobnob) and [@davesmith00000](https://github.com/davesmith00000).
 
-The sound effects are all royalty free (to the best of our knowledge):
+The sound effects are all royalty free:
 
 [https://freesound.org/people/qubodup/sounds/146770/](https://freesound.org/people/qubodup/sounds/146770/)
 
