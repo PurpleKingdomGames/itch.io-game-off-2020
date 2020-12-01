@@ -2,7 +2,7 @@
 
 Our entry into the [Game Off 2020](https://itch.io/jam/game-off-2020) game jam!
 
-[Play here!](https://purplekingdomgames.github.io/itch.io-game-off-2020/)
+Play it on [itch.io](https://hobnob.itch.io/game-off-2020), or [here](https://purplekingdomgames.github.io/itch.io-game-off-2020/) for a larger version.
 
 ## Aim of the game
 
