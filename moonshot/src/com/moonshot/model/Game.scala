@@ -11,16 +11,10 @@ import com.moonshot.model.Camera
 import com.moonshot.core.Assets
 
 final case class Game(
-    levelType: LevelType,
     gameState: GameState,
     ship: Ship,
     timeRemainingInSeconds: Seconds,
     asteroids: List[Asteroid],
-    // initialSpeed: Double,
-    // targetVerticalSpeed: Double,
-    // verticalOffset: Double,
-    // nextAsteroidSpawn: Double,
-    // targetVerticalOffset: Double,
     screenBounds: Rectangle,
     course: Course,
     camera: Camera,
@@ -74,48 +68,10 @@ final case class Game(
       Outcome(this)
   }
 
-  // def buyUpgrade(upgrade: Upgrade) =
-  //   if (timeRemainingInSeconds > upgrade.cost)
-  //     this.copy(
-  //       ship = ship.copy(health = ship.health + upgrade.healthBoost),
-  //       timeRemainingInSeconds =
-  //         timeRemainingInSeconds - upgrade.cost,
-  //       initialSpeed = initialSpeed + upgrade.speedBoost
-  //     )
-  //   else
-  //     this
-
-  // def spawnAsteroid(gameTime: GameTime, dice: Dice, screenBounds: BoundingBox) =
-  //   if (gameTime.running.value < nextAsteroidSpawn || asteroids.length >= maxAsteroids)
-  //     this
-  //   else {
-  //     val percentThroughLevel = verticalOffset / targetVerticalOffset
-  //     val minAsteroidSpawnRate =
-  //       initMinAsteroidSpawnRate - (
-  //         (targetMinAsteroidSpawnRate - initMinAsteroidSpawnRate) * percentThroughLevel
-  //       )
-  //     val maxAsteroidSpawnRate =
-  //       initMaxAsteroidSpawnRate - (
-  //         (targetMaxAsteroidSpawnRate - initMaxAsteroidSpawnRate) * percentThroughLevel
-  //       )
-
-  //     this.copy(
-  //       asteroids =
-  //         Asteroid.initial
-  //           .moveTo(dice.rollDouble * screenBounds.width - 16, screenBounds.y - 20)
-  //           .withRotation(dice.rollDouble * 360)
-  //           .withRotationSpeed(dice.rollDouble)
-  //           :: asteroids,
-  //       nextAsteroidSpawn = gameTime.running.value + (dice.rollDouble * (maxAsteroidSpawnRate - minAsteroidSpawnRate) + minAsteroidSpawnRate)
-  //     )
-  //   }
-
   def isInMoonBelt: Boolean =
     ship.coords.y > -course.height && ship.coords.y < -(course.height - Belt.Moon.height)
 
   def updateRunningGame(gameTime: GameTime /*, dice: Dice*/, shipControl: ShipControl) = {
-    // val verticalSpeed = Math.max(initialSpeed, targetVerticalSpeed * (verticalOffset / targetVerticalOffset))
-    // val verticalDelta = -(Math.max(-3, Math.min(-1, ship.force.y)) * verticalSpeed) * gameTime.delta.value
     val prevHealth = ship.health
     val nextShip =
       ship
@@ -157,14 +113,6 @@ final case class Game(
         .copy(
           ship = nextShip,
           asteroids = asteroids.map(_.update),
-          // asteroids = asteroids
-          //   .map(_.moveBy(0, verticalDelta))
-          //   .filter(a =>
-          //     a.coords.x > screenBounds.x - a.boundingBox.width
-          //       && a.coords.x < screenBounds.x + screenBounds.width
-          //       && a.coords.y < screenBounds.y + screenBounds.height
-          //   ),
-          // verticalOffset = Math.min(targetVerticalOffset, verticalOffset + verticalDelta),
           timeRemainingInSeconds = Seconds(Math.max(0, (timeRemainingInSeconds - gameTime.delta).toDouble)),
           distanceToMoon = distanceToMoon,
           camera =
@@ -173,7 +121,6 @@ final case class Game(
             else
               camera
         )
-      // .spawnAsteroid(gameTime, dice, screenBounds)
     )
 
     if (prevHealth > nextShip.health)
@@ -236,45 +183,12 @@ object Game {
 
       res.asteroids
     }
-    // .foldLeft(List.empty[(Belt, Int)]) { case (l, b) =>
-    //   l.headOption match {
-    //     case Some((b1, height)) =>
-    //       (b, height + b1.height) :: l
-
-    //     case None =>
-    //       List((b, 0))
-    //   }
-    // }
-    // .map(b => (b._1.getObstacles(dice, screenBounds.width), b._2))
-    // .flatMap(t =>
-    //   t._1
-    //     .map(o =>
-    //       Asteroid.initial
-    //         .moveTo(o.x, o.y - t._2)
-    //         .withRotation(dice.rollDouble * 360)
-    //         .withRotationSpeed(dice.rollDouble)
-    //         .withType(
-    //           dice.roll(4) match {
-    //             case 1 => AsteroidType.Small
-    //             case 2 => AsteroidType.Medium
-    //             case 3 => AsteroidType.Big
-    //             case _ => AsteroidType.ThatsNoMoon
-    //           }
-    //         )
-    //     )
-    // )
 
     Game(
-      LevelType.Lander,
       GameState.GameRunning,
       Ship.initial(screenBounds),
       maxTimeLimit,
       createAsteroids,
-      // initialSpeed,
-      // targetVerticalSpeed,
-      // 0,
-      // 0,
-      // Game.maxTimeLimit.toDouble * 2 * Game.initialSpeed,
       screenBounds,
       course,
       Camera.initial,

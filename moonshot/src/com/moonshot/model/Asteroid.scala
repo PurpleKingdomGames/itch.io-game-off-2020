@@ -23,14 +23,9 @@ final case class Asteroid(coords: Vector2, orbit: Vector2, _type: AsteroidType, 
   }
 
   def update: Asteroid =
-    this
-  /*this.copy(
-      rotation = rotation + rotationSpeed,
-      coords = Vector2(
-        x = Math.sin(rotation.value) * distance + orbit.x,
-        y = Math.cos(rotation.value) * distance + orbit.y
-      )
-    )*/
+    this.copy(
+      rotation = rotation + rotationSpeed
+    )
 
   def getBoundingBox = boundingBox
 

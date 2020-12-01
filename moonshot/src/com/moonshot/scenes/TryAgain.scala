@@ -13,7 +13,7 @@ import com.moonshot.core.Prefabs
 import com.moonshot.model.Fumes
 import indigoextras.subsystems.AutomataEvent
 
-object Customisation extends Scene[StartUpData, Model, ViewModel] {
+object TryAgain extends Scene[StartUpData, Model, ViewModel] {
 
   type SceneModel     = Game
   type SceneViewModel = WorkingViewModel

@@ -142,26 +142,8 @@ object LevelView {
         else Nil
       )
 
-  def drawUI(model: Game /*, viewModel: ViewModel*/, screenSize: Rectangle, running: Seconds): List[SceneGraphNode] = {
+  def drawUI(model: Game, screenSize: Rectangle, running: Seconds): List[SceneGraphNode] = {
     val middle = screenSize.center
-    // val textWaitTime: Double = 3
-
-    // val openingText =
-    //   Text(
-    //     "5 minutes to Dinner!",
-    //     middle.x / 2,
-    //     middle.y / 2,
-    //     0,
-    //     Assets.Font.fontKey
-    //   ).alignCenter
-    //     .withAlpha(
-    //       if (viewModel.level.firstLoad == Seconds.zero)
-    //         0
-    //       else if ((running.value - viewModel.level.firstLoad.value) < textWaitTime)
-    //         1
-    //       else
-    //         Math.max(0, 1 - ((running.value - viewModel.level.firstLoad.value - textWaitTime) * 0.3))
-    //     )
 
     val endText =
       model.gameState match {
@@ -178,9 +160,6 @@ object LevelView {
           )
         case GameState.GameLoss =>
           List(
-            // Text("Dinner time! You lost!", 0, 0, 0, Assets.Font.fontKey)
-            //   .moveTo(middle)
-            //   .alignCenter,
             Text("Hit enter to try again!", 0, 0, 0, Assets.Font.fontKey)
               .moveTo(middle)
               .moveBy(0, 32)
@@ -211,7 +190,6 @@ object LevelView {
     List(
       Text("Health: " + model.ship.health.toString(), 10, 10, 0, Assets.Font.fontKey),
       Text("Distance to Moon\n" + model.distanceToMoon.toInt.toString + " km", screenSize.right - 10, 10, 0, Assets.Font.fontKey).alignRight,
-      // openingText,
       Text("Paused", 0, 0, 0, Assets.Font.fontKey)
         .moveTo(middle)
         .alignCenter

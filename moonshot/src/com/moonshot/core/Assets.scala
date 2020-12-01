@@ -4,6 +4,11 @@ import indigo._
 
 object Assets {
 
+  val indigoLogoName: AssetName = AssetName("indigo")
+  val indigoLogo =
+    Graphic(Rectangle(0, 0, 60, 79), 50, Material.Textured(indigoLogoName))
+      .withRef(30, 40)
+
   val spriteSheetName =
     AssetName("rocket")
 
@@ -14,7 +19,8 @@ object Assets {
   def dynamicAssets(assetPath: String): Set[AssetType] =
     Placeholder.assets(assetPath) ++
       Rocket.assets(assetPath) ++
-      Backgrounds.assets(assetPath)
+      Backgrounds.assets(assetPath) ++
+      Set(AssetType.Image(indigoLogoName, AssetPath(assetPath + "assets/indigo.png")))
 
   object Backgrounds {
 
